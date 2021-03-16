@@ -28,13 +28,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.function.Supplier;
 
 import static com.hedera.services.bdd.spec.utilops.UtilVerbs.runLoadTest;
+import static com.hedera.services.bdd.suites.perf.PerfTestLoadSettings.DEFAULT_MEMO_LENGTH;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 public class LoadTest extends HapiApiSuite {
@@ -46,13 +46,15 @@ public class LoadTest extends HapiApiSuite {
 	public static OptionalInt hcsSubmitMessage = OptionalInt.empty();
 	public static OptionalInt hcsSubmitMessageSizeVar = OptionalInt.empty();
 	/** initial balance of account used as sender for performance test transactions */
-	public static OptionalLong initialBalance = OptionalLong.of(ONE_HBAR * 1_000_000L);
+	public static OptionalLong initialBalance = OptionalLong.of(ONE_MILLION_HBARS);
 	public static OptionalInt totalTestAccounts = OptionalInt.empty();
 	public static OptionalInt totalTestTopics = OptionalInt.empty();
 	public static OptionalInt totalTestTokens = OptionalInt.empty();
+	public static OptionalInt durationCreateTokenAssociation = OptionalInt.empty();
+	public static OptionalInt durationTokenTransfer = OptionalInt.empty();
 	public static OptionalInt testTreasureStartAccount = OptionalInt.empty();
 	public static OptionalInt totalTestTokenAccounts = OptionalInt.empty();
-	public static OptionalInt memoLength = OptionalInt.of(25);
+	public static OptionalInt memoLength = OptionalInt.of(DEFAULT_MEMO_LENGTH);
 
 	public static int parseArgs(String... args) {
 		int usedArgs = 0;
@@ -99,6 +101,10 @@ public class LoadTest extends HapiApiSuite {
 		return targetTPS.getAsDouble();
 	}
 
+	public static int getMemoLength() {
+		return memoLength.getAsInt();
+	}
+
 	public static int getTestDurationMinutes() {
 		return testDurationMinutes.getAsInt();
 	}
@@ -108,6 +114,7 @@ public class LoadTest extends HapiApiSuite {
 				.tps(targetTPS.isPresent() ? LoadTest::getTargetTPS : settings::getTps)
 				.tolerance(settings::getTolerancePercentage)
 				.allowedSecsBelow(settings::getAllowedSecsBelow)
+				.setMemoLength(settings::getMemoLength)
 				.setNumberOfThreads(threadNumber.isPresent()
 						? threadNumber::getAsInt : settings::getThreads)
 				.setTotalTestAccounts(totalTestAccounts.isPresent()
@@ -116,6 +123,10 @@ public class LoadTest extends HapiApiSuite {
 						? totalTestTopics::getAsInt : settings::getTotalTopics)
 				.setTotalTestTokens(totalTestTokens.isPresent()
 						? totalTestTokens::getAsInt : settings::getTotalTokens)
+				.setDurationCreateTokenAssociation(durationCreateTokenAssociation.isPresent()
+						? durationCreateTokenAssociation::getAsInt : settings::getDurationCreateTokenAssociation)
+				.setDurationTokenTransfer(durationTokenTransfer.isPresent()
+						? durationTokenTransfer::getAsInt : settings::getDurationTokenTransfer)
 				.setTotalTestTokenAccounts(totalTestTokenAccounts.isPresent()
 						? totalTestTokenAccounts::getAsInt : settings::getTotalTestTokenAccounts)
 				.setTestTreasureStartAccount(testTreasureStartAccount.isPresent()

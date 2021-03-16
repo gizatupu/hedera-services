@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hedera.services.bdd.spec.HapiApiSpec.defaultHapiSpec;
-import static com.hedera.services.bdd.spec.transactions.TxnUtils.NOISY_RETRY_PRECHECKS;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.tokenCreate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.tokenAssociate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.cryptoTransfer;
@@ -53,6 +52,7 @@ import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.EMPTY_TOKEN_TR
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.FAIL_INVALID;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INSUFFICIENT_PAYER_BALANCE;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INSUFFICIENT_TOKEN_BALANCE;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_TOKEN_ID;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.OK;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.PLATFORM_TRANSACTION_NOT_CREATED;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.SUCCESS;
@@ -112,7 +112,7 @@ public class TokenTransferBasicLoadTest extends LoadTest {
 				var op = tokenCreate(tokenRegistryName(next))
 						.payingWith(GENESIS)
 						.signedBy(GENESIS)
-						.fee(A_HUNDRED_HBARS)
+						.fee(ONE_HUNDRED_HBARS)
 						.initialSupply(100_000_000_000L)
 						.treasury(payingTreasury)
 						.hasRetryPrecheckFrom(BUSY, PLATFORM_TRANSACTION_NOT_CREATED, DUPLICATE_TRANSACTION,INSUFFICIENT_PAYER_BALANCE)
@@ -168,9 +168,9 @@ public class TokenTransferBasicLoadTest extends LoadTest {
 						.signedBy(GENESIS)
 						.hasRetryPrecheckFrom(BUSY, PLATFORM_TRANSACTION_NOT_CREATED, DUPLICATE_TRANSACTION,INSUFFICIENT_PAYER_BALANCE)
 						.hasPrecheckFrom(DUPLICATE_TRANSACTION, OK)
-						.hasKnownStatusFrom(SUCCESS, TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT,
-								TRANSACTION_EXPIRED, TOKENS_PER_ACCOUNT_LIMIT_EXCEEDED,FAIL_INVALID)
-						.fee(A_HUNDRED_HBARS)
+						.hasKnownStatusFrom(SUCCESS, TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT,INVALID_TOKEN_ID,
+								TRANSACTION_EXPIRED, TOKENS_PER_ACCOUNT_LIMIT_EXCEEDED,FAIL_INVALID, OK)
+						.fee(ONE_HUNDRED_HBARS)
 						.noLogging()
 						.suppressStats(true)
 						.deferStatusResolution();
@@ -231,13 +231,13 @@ public class TokenTransferBasicLoadTest extends LoadTest {
 				moving(1, tokenRegistryName(tokenNum)).between(senderAcct, receiverAcct))
 				.payingWith(senderAcct)
 				.signedBy(GENESIS)
-				.fee(A_HUNDRED_HBARS)
+				.fee(ONE_HUNDRED_HBARS)
 				.noLogging()
 				.suppressStats(true)
 				.hasPrecheckFrom(OK, INSUFFICIENT_PAYER_BALANCE,EMPTY_TOKEN_TRANSFER_ACCOUNT_AMOUNTS
 						,DUPLICATE_TRANSACTION)
 				.hasRetryPrecheckFrom(BUSY, PLATFORM_TRANSACTION_NOT_CREATED)
-				.hasKnownStatusFrom(SUCCESS, OK, INSUFFICIENT_TOKEN_BALANCE,TRANSACTION_EXPIRED,
+				.hasKnownStatusFrom(SUCCESS, OK, INSUFFICIENT_TOKEN_BALANCE,TRANSACTION_EXPIRED,INVALID_TOKEN_ID,
 						UNKNOWN, TOKEN_NOT_ASSOCIATED_TO_ACCOUNT)
 				.deferStatusResolution();
 		return () -> op;

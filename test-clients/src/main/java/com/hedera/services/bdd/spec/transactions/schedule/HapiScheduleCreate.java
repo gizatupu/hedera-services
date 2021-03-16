@@ -23,11 +23,11 @@ package com.hedera.services.bdd.spec.transactions.schedule;
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.ByteString;
 import com.hedera.services.bdd.spec.HapiApiSpec;
-import com.hedera.services.bdd.spec.HapiPropertySource;
 import com.hedera.services.bdd.spec.HapiSpecSetup;
 import com.hedera.services.bdd.spec.keys.TrieSigMapGenerator;
 import com.hedera.services.bdd.spec.transactions.HapiTxnOp;
 import com.hedera.services.bdd.spec.transactions.TxnUtils;
+import com.hedera.services.bdd.spec.transactions.crypto.HapiCryptoCreate;
 import com.hedera.services.usage.schedule.ScheduleCreateUsage;
 import com.hederahashgraph.api.proto.java.FeeData;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
@@ -45,10 +45,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.bdd.spec.HapiPropertySource.asScheduleString;
 import static com.hedera.services.bdd.spec.keys.SigMapGenerator.Nature.UNIQUE;
+import static com.hedera.services.bdd.spec.transactions.TxnFactory.bannerWith;
 import static com.hedera.services.bdd.spec.transactions.TxnUtils.suFrom;
 import static com.hederahashgraph.api.proto.java.HederaFunctionality.ScheduleCreate;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.SUCCESS;
@@ -60,11 +63,15 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 	private static final int defaultScheduleTxnExpiry = HapiSpecSetup.getDefaultNodeProps()
 			.getInteger("ledger.schedule.txExpiryTimeSecs");
 
+	private boolean advertiseCreation = false;
 	private boolean scheduleNonsense = false;
+	private boolean skipRegistryUpdate = false;
 	private boolean scheduleNoFunction = false;
 	private boolean inheritScheduledSigs = false;
+	private boolean saveExpectedScheduledTxnId = false;
 	private ByteString bytesSigned = ByteString.EMPTY;
 	private List<String> signatories = Collections.emptyList();
+
 
 	private final String entity;
 	private final HapiTxnOp<T> scheduled;
@@ -72,10 +79,26 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 	private Optional<String> adminKey = Optional.empty();
 	private Optional<String> payerAccountID = Optional.empty();
 	private Optional<String> entityMemo = Optional.empty();
+	private Optional<BiConsumer<String, byte[]>> successCb = Optional.empty();
 
 	public HapiScheduleCreate(String scheduled, HapiTxnOp<T> txn) {
 		this.entity = scheduled;
-		this.scheduled = txn.withLegacyProtoStructure().sansTxnId();
+		this.scheduled = txn.withLegacyProtoStructure().sansTxnId().sansNodeAccount();
+	}
+
+	public HapiScheduleCreate<T> savingExpectedScheduledTxnId() {
+		saveExpectedScheduledTxnId = true;
+		return this;
+	}
+
+	public HapiScheduleCreate<T> advertisingCreation() {
+		advertiseCreation = true;
+		return this;
+	}
+
+	public HapiScheduleCreate<T> rememberingNothing() {
+		skipRegistryUpdate = true;
+		return this;
 	}
 
 	public HapiScheduleCreate<T> inheritingScheduledSigs() {
@@ -103,6 +126,11 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 		return this;
 	}
 
+	public HapiScheduleCreate<T> exposingSuccessTo(BiConsumer<String, byte[]> cb) {
+		successCb = Optional.of(cb);
+		return this;
+	}
+
 	public HapiScheduleCreate<T> designatingPayer(String s) {
 		payerAccountID = Optional.of(s);
 		return this;
@@ -113,7 +141,7 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 		return this;
 	}
 
-	public HapiScheduleCreate<T> withEntityMemo(String entityMemo) {
+	public HapiScheduleCreate<T> entityMemo(String entityMemo) {
 		this.entityMemo = Optional.of(entityMemo);
 		return this;
 	}
@@ -213,17 +241,40 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 		if (verboseLoggingOn) {
 			log.info("Created schedule '{}' as {}", entity, createdSchedule().get());
 		}
+		successCb.ifPresent(cb -> cb.accept(asScheduleString(lastReceipt.getScheduleID()), bytesSigned.toByteArray()));
+		if (skipRegistryUpdate) {
+			return;
+		}
 		var registry = spec.registry();
 		registry.saveScheduleId(entity, lastReceipt.getScheduleID());
 		registry.saveBytes(registryBytesTag(entity), bytesSigned);
 		registry.saveExpiry(entity, (long)defaultScheduleTxnExpiry);
 		adminKey.ifPresent(k -> registry.saveAdminKey(entity, spec.registry().getKey(k)));
+
+		if (advertiseCreation) {
+			String banner = "\n\n" + bannerWith(
+					String.format(
+							"Created schedule '%s' with id '0.0.%d'.",
+							entity,
+							lastReceipt.getScheduleID().getScheduleNum()));
+			log.info(banner);
+		}
+		if (saveExpectedScheduledTxnId) {
+			if (verboseLoggingOn) {
+				log.info("Returned receipt for scheduled txn is {}", lastReceipt.getScheduledTransactionID());
+			}
+			registry.saveTxnId(correspondingScheduledTxnId(entity), lastReceipt.getScheduledTransactionID());
+		}
+	}
+
+	public static String correspondingScheduledTxnId(String entity) {
+		return entity + "ScheduledTxnId";
 	}
 
 	@Override
 	protected List<Function<HapiApiSpec, Key>> defaultSigners() {
-		List<Function<HapiApiSpec, Key>> signers = new ArrayList<>(List.of(
-				spec -> spec.registry().getKey(effectivePayer(spec))));
+		List<Function<HapiApiSpec, Key>> signers =
+				new ArrayList<>(List.of(spec -> spec.registry().getKey(effectivePayer(spec))));
 		adminKey.ifPresent(k -> signers.add(spec -> spec.registry().getKey(k)));
 		return signers;
 	}
@@ -235,6 +286,6 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 	private Optional<String> createdSchedule() {
 		return Optional
 				.ofNullable(lastReceipt)
-				.map(receipt -> HapiPropertySource.asScheduleString(receipt.getScheduleID()));
+				.map(receipt -> asScheduleString(receipt.getScheduleID()));
 	}
 }

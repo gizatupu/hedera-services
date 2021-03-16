@@ -52,14 +52,19 @@ import static com.hedera.services.bdd.spec.keys.KeyShape.threshOf;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.contractCallLocal;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.getAccountInfo;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.getAccountRecords;
+import static com.hedera.services.bdd.spec.queries.QueryVerbs.getScheduleInfo;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.getTxnRecord;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCall;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCreate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.cryptoCreate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.cryptoTransfer;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.fileCreate;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.scheduleCreate;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.scheduleDelete;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.scheduleSign;
 import static com.hedera.services.bdd.spec.transactions.crypto.HapiCryptoTransfer.tinyBarsFromTo;
 import static com.hedera.services.bdd.spec.utilops.UtilVerbs.newKeyNamed;
+import static com.hedera.services.bdd.spec.utilops.UtilVerbs.validateChargedUsdWithin;
 import static java.util.stream.Collectors.toList;
 
 public class CostOfEverythingSuite extends HapiApiSuite {
@@ -79,8 +84,9 @@ public class CostOfEverythingSuite extends HapiApiSuite {
 //				cryptoTransferPaths(),
 //				cryptoGetAccountInfoPaths(),
 //				cryptoGetAccountRecordsPaths(),
-//				transactionGetRecordPaths()
-				miscContractCreatesAndCalls()
+//				transactionGetRecordPaths(),
+//				miscContractCreatesAndCalls(),
+				canonicalScheduleOpsHaveExpectedUsdFees()
 		).map(Stream::of).reduce(Stream.empty(), Stream::concat).collect(toList());
 	}
 
@@ -92,6 +98,53 @@ public class CostOfEverythingSuite extends HapiApiSuite {
 		};
 	}
 
+	HapiApiSpec canonicalScheduleOpsHaveExpectedUsdFees() {
+		return customHapiSpec("CanonicalScheduleOps")
+				.withProperties(Map.of(
+						"nodes", "35.231.208.148",
+						"default.payer.pemKeyLoc", "previewtestnet-account2.pem",
+						"default.payer.pemKeyPassphrase", "<secret>"
+				)).given(
+						cryptoCreate("payingSender")
+								.balance(ONE_HUNDRED_HBARS),
+						cryptoCreate("receiver")
+								.balance(0L)
+								.receiverSigRequired(true)
+				).when(
+						scheduleCreate("canonical",
+								cryptoTransfer(tinyBarsFromTo("payingSender", "receiver", 1L))
+										.blankMemo()
+										.fee(ONE_HBAR)
+										.signedBy("payingSender")
+						)
+								.via("canonicalCreation")
+								.payingWith("payingSender")
+								.adminKey("payingSender")
+								.inheritingScheduledSigs(),
+						getScheduleInfo("canonical")
+								.payingWith("payingSender"),
+						scheduleSign("canonical")
+								.via("canonicalSigning")
+								.payingWith("payingSender")
+								.withSignatories("receiver"),
+						scheduleCreate("tbd",
+								cryptoTransfer(tinyBarsFromTo("payingSender", "receiver", 1L))
+										.blankMemo()
+										.signedBy("payingSender")
+						)
+								.payingWith("payingSender")
+								.adminKey("payingSender")
+								.inheritingScheduledSigs(),
+						scheduleDelete("tbd")
+								.via("canonicalDeletion")
+								.payingWith("payingSender")
+				).then(
+						validateChargedUsdWithin("canonicalCreation", 0.01, 3.0),
+						validateChargedUsdWithin("canonicalSigning", 0.001, 3.0),
+						validateChargedUsdWithin("canonicalDeletion", 0.001, 3.0)
+				);
+	}
+
 	HapiApiSpec miscContractCreatesAndCalls() {
 		Object[] donationArgs = new Object[] { 2, "Hey, Ma!" };
 
@@ -99,7 +152,7 @@ public class CostOfEverythingSuite extends HapiApiSuite {
 				.withProperties(Map.of("cost.snapshot.mode", costSnapshotMode.toString()))
 				.given(
 						cryptoCreate("civilian")
-								.balance(A_HUNDRED_HBARS),
+								.balance(ONE_HUNDRED_HBARS),
 						fileCreate("multiBytecode")
 								.payingWith("civilian")
 								.path(MULTIPURPOSE_BYTECODE_PATH),

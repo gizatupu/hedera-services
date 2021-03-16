@@ -34,9 +34,6 @@ import com.hedera.services.bdd.suites.contract.ChildStorageSpec;
 import com.hedera.services.bdd.suites.contract.ContractCallLocalSuite;
 import com.hedera.services.bdd.suites.contract.ContractCallSuite;
 import com.hedera.services.bdd.suites.contract.ContractCreateSuite;
-import com.hedera.services.bdd.suites.contract.ContractDeleteSuite;
-import com.hedera.services.bdd.suites.contract.ContractGetBytecodeSuite;
-import com.hedera.services.bdd.suites.contract.ContractUpdateSuite;
 import com.hedera.services.bdd.suites.contract.DeprecatedContractKeySuite;
 import com.hedera.services.bdd.suites.contract.NewOpInConstructorSuite;
 import com.hedera.services.bdd.suites.contract.OCTokenSpec;
@@ -68,8 +65,8 @@ import com.hedera.services.bdd.suites.freeze.FreezeSuite;
 import com.hedera.services.bdd.suites.freeze.FreezeUpdateOnly;
 import com.hedera.services.bdd.suites.freeze.SimpleFreezeOnly;
 import com.hedera.services.bdd.suites.freeze.UpdateServerFiles;
-import com.hedera.services.bdd.suites.issues.PrivilegedOpsSuite;
 import com.hedera.services.bdd.suites.issues.IssueXXXXSpec;
+import com.hedera.services.bdd.suites.issues.PrivilegedOpsSuite;
 import com.hedera.services.bdd.suites.meta.VersionInfoSpec;
 import com.hedera.services.bdd.suites.misc.CannotDeleteSystemEntitiesSuite;
 import com.hedera.services.bdd.suites.misc.ConsensusQueriesStressTests;
@@ -79,38 +76,45 @@ import com.hedera.services.bdd.suites.misc.FileQueriesStressTests;
 import com.hedera.services.bdd.suites.misc.OneOfEveryTransaction;
 import com.hedera.services.bdd.suites.misc.SleepOnly;
 import com.hedera.services.bdd.suites.misc.ZeroStakeNodeTest;
+import com.hedera.services.bdd.suites.perf.AccountBalancesClientSaveLoadTest;
 import com.hedera.services.bdd.suites.perf.ContractCallLoadTest;
 import com.hedera.services.bdd.suites.perf.CreateTopicPerfSuite;
 import com.hedera.services.bdd.suites.perf.CryptoCreatePerfSuite;
 import com.hedera.services.bdd.suites.perf.CryptoTransferLoadTest;
+import com.hedera.services.bdd.suites.perf.FileContractMemoPerfSuite;
 import com.hedera.services.bdd.suites.perf.FileUpdateLoadTest;
 import com.hedera.services.bdd.suites.perf.HCSChunkingRealisticPerfSuite;
+import com.hedera.services.bdd.suites.perf.MixedOpsLoadTest;
+import com.hedera.services.bdd.suites.perf.MixedOpsMemoPerfSuite;
 import com.hedera.services.bdd.suites.perf.MixedTransferAndSubmitLoadTest;
 import com.hedera.services.bdd.suites.perf.MixedTransferCallAndSubmitLoadTest;
+import com.hedera.services.bdd.suites.misc.MixedOpsTransactionsSuite;
+import com.hedera.services.bdd.suites.perf.ReadyToRunScheduledXfersLoad;
 import com.hedera.services.bdd.suites.perf.SubmitMessageLoadTest;
 import com.hedera.services.bdd.suites.perf.TokenRelStatusChanges;
 import com.hedera.services.bdd.suites.perf.TokenTransferBasicLoadTest;
-import com.hedera.services.bdd.suites.reconnect.CreateAccountsBeforeReconnect;
 import com.hedera.services.bdd.suites.perf.TokenTransfersLoadProvider;
 import com.hedera.services.bdd.suites.reconnect.CheckUnavailableNode;
+import com.hedera.services.bdd.suites.reconnect.CreateAccountsBeforeReconnect;
 import com.hedera.services.bdd.suites.reconnect.CreateFilesBeforeReconnect;
 import com.hedera.services.bdd.suites.reconnect.CreateTopicsBeforeReconnect;
 import com.hedera.services.bdd.suites.reconnect.MixedValidationsAfterReconnect;
 import com.hedera.services.bdd.suites.reconnect.SubmitMessagesForReconnect;
+import com.hedera.services.bdd.suites.reconnect.UpdateAllProtectedFilesDuringReconnect;
 import com.hedera.services.bdd.suites.reconnect.UpdateApiPermissionsDuringReconnect;
 import com.hedera.services.bdd.suites.reconnect.ValidateApiPermissionStateAfterReconnect;
 import com.hedera.services.bdd.suites.reconnect.ValidateAppPropertiesStateAfterReconnect;
-import com.hedera.services.bdd.suites.reconnect.UpdateAllProtectedFilesDuringReconnect;
 import com.hedera.services.bdd.suites.reconnect.ValidateDuplicateTransactionAfterReconnect;
 import com.hedera.services.bdd.suites.reconnect.ValidateExchangeRateStateAfterReconnect;
 import com.hedera.services.bdd.suites.reconnect.ValidateFeeScheduleStateAfterReconnect;
-import com.hedera.services.bdd.suites.records.CharacterizationSuite;
 import com.hedera.services.bdd.suites.records.ContractRecordsSanityCheckSuite;
 import com.hedera.services.bdd.suites.records.CryptoRecordsSanityCheckSuite;
 import com.hedera.services.bdd.suites.records.DuplicateManagementTest;
 import com.hedera.services.bdd.suites.records.FileRecordsSanityCheckSuite;
-import com.hedera.services.bdd.suites.records.SignedTransactionBytesRecordsSuite;
 import com.hedera.services.bdd.suites.records.RecordCreationSuite;
+import com.hedera.services.bdd.suites.records.SignedTransactionBytesRecordsSuite;
+import com.hedera.services.bdd.suites.regression.AddWellKnownEntities;
+import com.hedera.services.bdd.suites.regression.JrsRestartTestTemplate;
 import com.hedera.services.bdd.suites.regression.UmbrellaRedux;
 import com.hedera.services.bdd.suites.schedule.ScheduleCreateSpecs;
 import com.hedera.services.bdd.suites.schedule.ScheduleDeleteSpecs;
@@ -228,9 +232,15 @@ public class SuiteRunner {
 //				new RecordCreationSuite()));
 		/* Umbrella Redux */
 		put("UmbrellaRedux", aof(new UmbrellaRedux()));
+		/* Regression saved state management helpers */
+		put("AddWellKnownEntities", aof(new AddWellKnownEntities()));
+		/* JRS restart tests */
+		put("RestartWithScheduledEntities", aof(new JrsRestartTestTemplate()));
 		/* Load tests. */
 		put("TokenTransfersBasicLoadTest", aof(new TokenTransferBasicLoadTest()));
+		put("AccountBalancesLoadTest", aof(new AccountBalancesClientSaveLoadTest()));
 		put("TokenTransfersLoad", aof(new TokenTransfersLoadProvider()));
+		put("ReadyToRunScheduledXfersLoad", aof(new ReadyToRunScheduledXfersLoad()));
 		put("TokenRelChangesLoad", aof(new TokenRelStatusChanges()));
 		put("FileUpdateLoadTest", aof(new FileUpdateLoadTest()));
 		put("ContractCallLoadTest", aof(new ContractCallLoadTest()));
@@ -241,6 +251,8 @@ public class SuiteRunner {
 		put("HCSChunkingRealisticPerfSuite", aof(new HCSChunkingRealisticPerfSuite()));
 		put("CryptoCreatePerfSuite", aof(new CryptoCreatePerfSuite()));
 		put("CreateTopicPerfSuite", aof(new CreateTopicPerfSuite()));
+		put("MixedOpsMemoPerfSuite", aof(new MixedOpsMemoPerfSuite()));
+		put("FileContractMemoPerfSuite", aof(new FileContractMemoPerfSuite()));
 		/* Functional tests - RECONNECT */
 		put("CreateAccountsBeforeReconnect", aof(new CreateAccountsBeforeReconnect()));
 		put("CreateTopicsBeforeReconnect", aof(new CreateTopicsBeforeReconnect()));
@@ -345,6 +357,8 @@ public class SuiteRunner {
 		put("SimpleFreezeOnly", aof(new SimpleFreezeOnly()));
 		/* Transfer then freeze */
 		put("CryptoTransferThenFreezeTest", aof(new CryptoTransferThenFreezeTest()));
+		put("MixedOpsTransactionsSuite", aof(new MixedOpsTransactionsSuite()));
+		put("MixedOpsLoadTest", aof(new MixedOpsLoadTest()));
 	}};
 
 	static boolean runAsync;
@@ -507,6 +521,7 @@ public class SuiteRunner {
 				globalPassFlag &= result.failedSuites.isEmpty();
 			}
 		});
+		log.info("============== SuiteRunner finished ==============");
 	}
 
 	private static boolean categoryLeaksState(HapiApiSuite[] suites) {

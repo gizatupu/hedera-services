@@ -76,17 +76,17 @@ public class MerkleAccount extends AbstractNaryMerkleInternal implements FCMValu
 		static final int NUM_0140_CHILDREN = 4;
 	}
 
-	public MerkleAccount(List<MerkleNode> children) {
-		super(ChildIndices.NUM_0140_CHILDREN);
+	public MerkleAccount(List<MerkleNode> children, MerkleAccount sourceAccount) {
+		super(sourceAccount);
 		addDeserializedChildren(children, MERKLE_VERSION);
 	}
 
 	public MerkleAccount() {
-		this(List.of(
+		addDeserializedChildren(List.of(
 				new MerkleAccountState(),
 				new FCQueue<ExpirableTxnRecord>(),
 				new MerkleAccountEntities(),
-				new MerkleAccountEntities()));
+				new MerkleAccountEntities()), MERKLE_VERSION);
 	}
 
 	/* --- MerkleInternal --- */
@@ -149,7 +149,7 @@ public class MerkleAccount extends AbstractNaryMerkleInternal implements FCMValu
 				state().copy(),
 				records().copy(),
 				tokens().copy(),
-				nftTypes().copy()));
+				nftTypes().copy()), this);
 	}
 
 	/* ---- Object ---- */

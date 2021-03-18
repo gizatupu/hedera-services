@@ -129,13 +129,13 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 	public ServicesState() {
 	}
 
-	public ServicesState(List<MerkleNode> children) {
-		super(ChildIndices.NUM_0140_CHILDREN);
+	public ServicesState(List<MerkleNode> children, ServicesState sourceState) {
+		super(sourceState);
 		addDeserializedChildren(children, MERKLE_VERSION);
 	}
 
-	public ServicesState(ServicesContext ctx, NodeId nodeId, List<MerkleNode> children) {
-		this(children);
+	public ServicesState(ServicesContext ctx, NodeId nodeId, List<MerkleNode> children, ServicesState sourceState) {
+		this(children, sourceState);
 		this.ctx = ctx;
 		this.nodeId = nodeId;
 		if (ctx != null) {
@@ -364,7 +364,7 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 				runningHashLeaf().copy(),
 				nftTypes().copy(),
 				nftOwnerships().copy()
-		));
+		), this);
 	}
 
 	/* --------------- */

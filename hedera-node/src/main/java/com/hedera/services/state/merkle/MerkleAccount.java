@@ -73,7 +73,7 @@ public class MerkleAccount extends AbstractNaryMerkleInternal implements FCMValu
 		static final int NUM_090_CHILDREN = 3;
 
 		static final int NFT_TYPES = 3;
-		static final int NUM_0140_CHILDREN = 3;
+		static final int NUM_0140_CHILDREN = 4;
 	}
 
 	public MerkleAccount(List<MerkleNode> children) {
@@ -114,21 +114,21 @@ public class MerkleAccount extends AbstractNaryMerkleInternal implements FCMValu
 	}
 	@Override
 	public void initialize() {
-		if (getNumberOfChildren() == ChildIndices.NUM_090_ALPHA_CHILDREN) {
-			addDeserializedChildren(List.of(
-					getChild(ChildIndices.STATE),
-					getChild(ChildIndices.RELEASE_090_ALPHA_PAYER_RECORDS),
-					getChild(ChildIndices.RELEASE_090_ALPHA_ASSOCIATED_TOKENS)), MERKLE_VERSION);
-		} else if (!(getChild(ChildIndices.RELEASE_090_ASSOCIATED_TOKENS) instanceof MerkleAccountEntities)) {
-			addDeserializedChildren(List.of(
-					getChild(ChildIndices.STATE),
-					getChild(ChildIndices.RELEASE_081_PAYER_RECORDS),
-					new MerkleAccountEntities()), MERKLE_VERSION);
-		} else {
-			if (nftTypes() == null) {
-				setChild(ChildIndices.NFT_TYPES, new MerkleAccountEntities());
-			}
-		}
+//		if (getNumberOfChildren() == ChildIndices.NUM_090_ALPHA_CHILDREN) {
+//			addDeserializedChildren(List.of(
+//					getChild(ChildIndices.STATE),
+//					getChild(ChildIndices.RELEASE_090_ALPHA_PAYER_RECORDS),
+//					getChild(ChildIndices.RELEASE_090_ALPHA_ASSOCIATED_TOKENS)), MERKLE_VERSION);
+//		} else if (!(getChild(ChildIndices.RELEASE_090_ASSOCIATED_TOKENS) instanceof MerkleAccountEntities)) {
+//			addDeserializedChildren(List.of(
+//					getChild(ChildIndices.STATE),
+//					getChild(ChildIndices.RELEASE_081_PAYER_RECORDS),
+//					new MerkleAccountEntities()), MERKLE_VERSION);
+//		} else {
+//			if (nftTypes() == null) {
+//				setChild(ChildIndices.NFT_TYPES, new MerkleAccountEntities());
+//			}
+//		}
 	}
 
 	/* --- FastCopyable --- */

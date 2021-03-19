@@ -120,7 +120,7 @@ public class NftXchange {
 		init.add(resolvingUniquely(() -> cryptoCreate(treasury)
 				.payingWith(HapiApiSuite.GENESIS)
 				.balance(TREASURY_BALANCE)));
-		int firstSerialNos = Math.min(10, serialNos), restSerialNos = serialNos - firstSerialNos;
+		int firstSerialNos = Math.min(MAX_PER_MINT, serialNos), restSerialNos = serialNos - firstSerialNos;
 		init.add(nftCreate(nftType)
 				.treasury(treasury)
 				.initialSerialNos(firstSerialNos));

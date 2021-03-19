@@ -20,6 +20,9 @@ package com.hedera.services;
  * ‍
  */
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.TextFormat;
 import com.hedera.services.context.CurrentPlatformStatus;
 import com.hedera.services.context.ServicesContext;
 import com.hedera.services.context.properties.GlobalDynamicProperties;
@@ -30,6 +33,7 @@ import com.hedera.services.context.properties.PropertySources;
 import com.hedera.services.fees.FeeCalculator;
 import com.hedera.services.grpc.GrpcServerManager;
 import com.hedera.services.ledger.accounts.BackingStore;
+import com.hedera.services.legacy.proto.utils.CommonUtils;
 import com.hedera.services.records.AccountRecordsHistorian;
 import com.hedera.services.state.exports.AccountsExporter;
 import com.hedera.services.state.exports.BalancesExporter;
@@ -45,6 +49,7 @@ import com.hedera.services.utils.Pause;
 import com.hedera.services.utils.SystemExits;
 import com.hedera.test.utils.IdUtils;
 import com.hederahashgraph.api.proto.java.AccountID;
+import com.hederahashgraph.api.proto.java.Transaction;
 import com.swirlds.common.Address;
 import com.swirlds.common.AddressBook;
 import com.swirlds.common.Console;
@@ -615,5 +620,20 @@ public class ServicesMainTest {
 		NotificationFactory.getEngine().dispatch(ReconnectCompleteListener.class, notification);
 		// should receive this notification
 		verify(recordStreamManager).setStartWriteAtCompleteWindow(true);
+	}
+
+	@Test
+	public void hmm() throws InvalidProtocolBufferException, TextFormat.InvalidEscapeSequenceException {
+		var fl = "\\n(\\n\\017\\n\\t\\b\\375\\240\\323\\202\\006" +
+				"\\020\\316\\027\\022\\002\\030\\002\\022\\002\\030\\003\\030\\260\\254\\241\\037\\\"\\002\\bx\\372" +
+				"\\002\\a\\n\\003\\030\\322\\017\\020\\002\\022G\\nE\\n\\001\\n\\032@\\3028&\\275\\vf]\\311`\\\\i\\346n" +
+				"\\021,\\210\\023\\360\\3356\\307\\327\\321u\\364\\332\\364\\\\X\\177\\246\\365\\004}\\220" +
+				"\\036D,\\320\\027Em\\277\\021t\\177U\\370\\266\\024\\361\\026V$v\\212v\\252\\200\\251\\001\\316\\375\\r";
+		ByteString bs = TextFormat.unescapeBytes(fl);
+		Transaction t = Transaction
+				.newBuilder()
+				.setSignedTransactionBytes(bs)
+				.build();
+		System.out.println(CommonUtils.extractTransactionBody(t));
 	}
 }

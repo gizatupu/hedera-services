@@ -1,8 +1,6 @@
 package com.hedera.services.ledger.accounts;
 
 import com.google.protobuf.ByteString;
-import com.hedera.services.context.SingletonContextsManager;
-import com.hedera.services.ledger.HederaLedger;
 import com.hedera.services.state.merkle.MerkleEntityId;
 import com.hedera.services.state.merkle.MerkleNftOwnership;
 import com.hederahashgraph.api.proto.java.NftID;
@@ -49,10 +47,10 @@ public class BackingNftOwnerships implements BackingStore<Pair<NftID, ByteString
 
 	@Override
 	public void flushMutableRefs() {
-		cache.entrySet().stream()
-				.sorted(OWNERSHIP_ENTRY_CMP)
-				.forEach(entry ->
-						delegate.get().replace(MerkleNftOwnership.fromPair(entry.getKey()), entry.getValue()));
+//		cache.entrySet().stream()
+//				.sorted(OWNERSHIP_ENTRY_CMP)
+//				.forEach(entry ->
+//						delegate.get().replace(MerkleNftOwnership.fromPair(entry.getKey()), entry.getValue()));
 		cache.clear();
 	}
 
@@ -69,12 +67,12 @@ public class BackingNftOwnerships implements BackingStore<Pair<NftID, ByteString
 	}
 
 	@Override
-	public void put(Pair<NftID, ByteString> key, MerkleEntityId account) {
+	public void put(Pair<NftID, ByteString> key, MerkleEntityId owner) {
 		if (!existingOwnerships.contains(key)) {
 			var merkleKey = MerkleNftOwnership.fromPair(key);
-			delegate.get().put(merkleKey, account);
+			delegate.get().put(merkleKey, owner);
 			existingOwnerships.add(key);
-		} else if (!cache.containsKey(key) || cache.get(key) != account) {
+		} else if (!cache.containsKey(key) || cache.get(key) != owner) {
 			throw new IllegalArgumentException(String.format(
 					"Argument 'key=%s' does not map to a mutable ref!",
 					MerkleNftOwnership.fromPair(key)));

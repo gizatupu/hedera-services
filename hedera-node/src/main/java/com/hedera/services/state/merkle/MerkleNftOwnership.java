@@ -92,7 +92,7 @@ public class MerkleNftOwnership extends AbstractMerkleLeaf implements FCMKey {
 	/* --- FastCopyable --- */
 	@Override
 	public MerkleNftOwnership copy() {
-		return this;
+		return new MerkleNftOwnership(nftType, serialNo);
 	}
 
 	@Override

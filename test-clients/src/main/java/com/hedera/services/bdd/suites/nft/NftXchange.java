@@ -128,7 +128,7 @@ public class NftXchange {
 			addMinting(init, restSerialNos);
 		}
 
-		init.add(getAccountBalance(treasury).logged());
+	//	init.add(getAccountBalance(treasury).logged());
 
 		addAssociations(init);
 //		createBnfs(init);
@@ -136,7 +136,7 @@ public class NftXchange {
 		addSetupXfers(init);
 
 		init.add(getAccountBalance(treasury).logged());
-		getAccountBalanceForAllUsers(init);
+		//getAccountBalanceForAllUsers(init);
 
 		return init;
 	}

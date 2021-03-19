@@ -21,6 +21,8 @@ package com.hedera.services.legacy.CI;
  */
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.TextFormat;
 import com.hedera.services.legacy.regression.umbrella.CryptoServiceTest;
 import com.hedera.services.legacy.regression.umbrella.FileServiceTest;
 import com.hedera.services.legacy.regression.umbrella.TestHelperComplex;
@@ -51,9 +53,12 @@ import com.hedera.services.legacy.proto.utils.ProtoCommonUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.hedera.services.legacy.proto.utils.CommonUtils.extractTransactionBody;
 
 /**
  * Tests with negative file service test.
@@ -397,7 +402,7 @@ public class FilePositiveNegativeTest extends FileServiceTest {
   private void checkRecord(Transaction transaction, AccountID payerID, AccountID nodeID)
       throws Exception {
     TransactionBody body =
-        com.hedera.services.legacy.proto.utils.CommonUtils.extractTransactionBody(transaction);
+        extractTransactionBody(transaction);
     TransactionRecord record = getTransactionRecord(body.getTransactionID(), payerID, nodeID);
     CommonUtils.checkRecord(record, body);
   }
@@ -752,5 +757,20 @@ public class FilePositiveNegativeTest extends FileServiceTest {
     Response fileContentResp = stub.getFileContent(fileGetContentsQuery);
     
     return fileContentResp;
+  }
+
+  @Test
+  public void hmm() throws InvalidProtocolBufferException, TextFormat.InvalidEscapeSequenceException {
+    var fl = "\\n\\017\\n\\t\\b\\247\\201\\317\\202\\006\\020\\262\\n\\022\\002\\030\\002\\022\\002\\030\\003\\030" +
+            "\\375\\326\\326\\037\\\"\\002\\bxZA\\n\\\"\\022 " +
+            "\\'\\203\\225\\345\\360Ky_+\\215\\240\\356\\252\\371\\a\\226\\205r?*\\272M\\b\\364\\263\\300\\341\\213" +
+            "\\253\\333$\\005\\032\\0000\\200\\200\\320\\247\\244\\260\\344\\261E8\\200\\200\\320\\247\\244\\260\\344" +
+            "\\261EJ\\005\\b\\200\\316\\332\\003";
+    ByteString bs = TextFormat.unescapeBytes(fl);
+    Transaction t = Transaction
+            .newBuilder()
+            .setSignedTransactionBytes(bs)
+            .build();
+    System.out.println(extractTransactionBody(t));
   }
 }

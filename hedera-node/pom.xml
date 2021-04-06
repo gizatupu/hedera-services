@@ -27,7 +27,6 @@
     <ant-nodeps.version>1.8.1</ant-nodeps.version>
 
     <ethereum-core.version>1.12.0-v0.5.0</ethereum-core.version>
-    <swirlds.version>0.9.0-patch.1</swirlds.version>
   </properties>
 
   <build>

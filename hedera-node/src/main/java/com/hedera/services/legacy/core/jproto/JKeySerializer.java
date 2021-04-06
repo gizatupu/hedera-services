@@ -74,6 +74,7 @@ public class JKeySerializer {
   }
 
   public static <T> T deserialize(DataInputStream stream) throws IOException {
+try {
     long version = stream.readLong();
     long objectType = stream.readLong();
     long length = stream.readLong();
@@ -90,6 +91,10 @@ public class JKeySerializer {
     }
 
     return unpack(stream, type, length);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
   }
 
   private static void pack(DataOutputStream stream, JObjectType type, Object object) throws IOException {

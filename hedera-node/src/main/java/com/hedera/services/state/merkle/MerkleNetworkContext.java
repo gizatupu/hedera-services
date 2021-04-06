@@ -156,6 +156,7 @@ public class MerkleNetworkContext extends AbstractMerkleLeaf {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		consensusTimeOfLastHandledTxn = serdes.readNullableInstant(in);
 		seqNo = seqNoSupplier.get();
 		seqNo.deserialize(in);
@@ -182,6 +183,10 @@ public class MerkleNetworkContext extends AbstractMerkleLeaf {
 				}
 			}
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

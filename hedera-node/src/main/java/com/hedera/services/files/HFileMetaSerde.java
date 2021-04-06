@@ -63,12 +63,17 @@ public class HFileMetaSerde {
 	}
 
 	public static HFileMeta deserialize(DataInputStream in) throws IOException {
+try {
 		long version = in.readLong();
 		if (version == PRE_MEMO_VERSION) {
 			return readPreMemoMeta(in);
 		} else {
 			return readMemoMeta(in);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	private static HFileMeta readMemoMeta(DataInputStream in) throws IOException {

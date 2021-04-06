@@ -90,10 +90,15 @@ public class RecordStreamObject extends AbstractSerializableHashable implements 
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		transactionRecord = TransactionRecord.parseFrom(in.readByteArray(MAX_RECORD_LENGTH));
 		transaction = Transaction.parseFrom(in.readByteArray(MAX_TRANSACTION_LENGTH));
 		final Timestamp timestamp = transactionRecord.getConsensusTimestamp();
 		consensusTimestamp = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	/**

@@ -84,6 +84,7 @@ public class ExchangeRates implements SelfSerializable {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		currHbarEquiv = in.readInt();
 		currCentEquiv = in.readInt();
 		currExpiry = in.readLong();
@@ -92,6 +93,10 @@ public class ExchangeRates implements SelfSerializable {
 		nextExpiry = in.readLong();
 
 		initialized = true;
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

@@ -150,6 +150,7 @@ public class TxnReceipt implements SelfSerializable {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		status = getNormalisedStringFromBytes(in.readByteArray(MAX_STATUS_BYTES));
 		exchangeRates = in.readSerializable(true, ExchangeRates::new);
 		accountId = serdes.readNullableSerializable(in);
@@ -174,6 +175,10 @@ public class TxnReceipt implements SelfSerializable {
 		if (version >= RELEASE_0120_VERSION) {
 			scheduledTxnId = serdes.readNullableSerializable(in);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	public long getRunningHashVersion() {

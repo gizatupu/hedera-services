@@ -62,9 +62,14 @@ public class MerkleTokenRelStatus extends AbstractMerkleLeaf implements FCMValue
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		balance = in.readLong();
 		frozen = in.readBoolean();
 		kycGranted = in.readBoolean();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

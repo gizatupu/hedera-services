@@ -188,6 +188,7 @@ public class MerkleToken extends AbstractMerkleLeaf implements FCMValue {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		deleted = in.readBoolean();
 		expiry = in.readLong();
 		autoRenewAccount = serdes.readNullableSerializable(in);
@@ -207,6 +208,10 @@ public class MerkleToken extends AbstractMerkleLeaf implements FCMValue {
 		if (version >= RELEASE_0120_VERSION) {
 			memo = in.readNormalisedString(UPPER_BOUND_MEMO_UTF8_BYTES);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

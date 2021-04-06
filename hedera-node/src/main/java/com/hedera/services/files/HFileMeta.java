@@ -54,9 +54,14 @@ public class HFileMeta {
 	}
 
 	public static HFileMeta deserialize(byte[] bytes) throws IOException {
+try {
 		DataInputStream stream = new DataInputStream(new ByteArrayInputStream(bytes));
 
 		return HFileMetaSerde.deserialize(stream);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	public boolean isDeleted() {

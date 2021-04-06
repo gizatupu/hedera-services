@@ -197,6 +197,7 @@ public class MerkleSchedule extends AbstractMerkleLeaf implements FCMValue {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		expiry = in.readLong();
 		bodyBytes = in.readByteArray(Integer.MAX_VALUE);
 		executed = in.readBoolean();
@@ -208,6 +209,10 @@ public class MerkleSchedule extends AbstractMerkleLeaf implements FCMValue {
 		}
 
 		initFromBodyBytes();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

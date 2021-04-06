@@ -101,6 +101,7 @@ public class MerkleAccountState extends AbstractMerkleLeaf {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		key = serdes.readNullable(in, serdes::deserializeKey);
 		expiry = in.readLong();
 		hbarBalance = in.readLong();
@@ -119,6 +120,10 @@ public class MerkleAccountState extends AbstractMerkleLeaf {
 			/* Releases v0.8.0 and v0.8.1 included token information in the account state. */
 			in.readLongArray(MAX_CONCEIVABLE_TOKEN_BALANCES_SIZE);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

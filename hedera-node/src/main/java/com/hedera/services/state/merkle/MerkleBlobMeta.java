@@ -65,7 +65,12 @@ public class MerkleBlobMeta extends AbstractMerkleLeaf implements FCMKey {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		path = in.readNormalisedString(MAX_PATH_LEN);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	/* --- FastCopyable --- */

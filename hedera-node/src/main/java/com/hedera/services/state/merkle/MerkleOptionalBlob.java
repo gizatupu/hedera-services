@@ -121,11 +121,16 @@ public class MerkleOptionalBlob extends AbstractMerkleLeaf implements FCMValue, 
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		var hasData = in.readBoolean();
 		if (hasData) {
 			delegate = blobSupplier.get();
 			delegate.deserialize(in, MerkleOptionalBlob.MERKLE_VERSION);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

@@ -82,7 +82,12 @@ public class MerkleAccountTokens extends AbstractMerkleLeaf {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		tokenIds = in.readLongArray(MAX_CONCEIVABLE_TOKEN_ID_PARTS);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

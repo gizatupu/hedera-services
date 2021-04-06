@@ -92,12 +92,17 @@ public class MerkleEntityAssociation extends AbstractMerkleLeaf implements FCMKe
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		fromShard = in.readLong();
 		fromRealm = in.readLong();
 		fromNum = in.readLong();
 		toShard = in.readLong();
 		toRealm = in.readLong();
 		toNum = in.readLong();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

@@ -70,8 +70,13 @@ public class CurrencyAdjustments implements SelfSerializable {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		accountIds = in.readSerializableList(MAX_NUM_ADJUSTMENTS, true, EntityId::new);
 		hbars = in.readLongArray(MAX_NUM_ADJUSTMENTS);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

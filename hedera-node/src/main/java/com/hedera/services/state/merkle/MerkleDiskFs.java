@@ -207,6 +207,7 @@ public class MerkleDiskFs extends AbstractMerkleLeaf implements MerkleExternalLe
 	/* --- SelfSerializable --- */
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		int numSavedHashes = in.readInt();
 		for (int i = 0; i < numSavedHashes; i++) {
 			var fid = FileID.newBuilder()
@@ -221,6 +222,10 @@ public class MerkleDiskFs extends AbstractMerkleLeaf implements MerkleExternalLe
 			log.info("Restored file '{}' with hash :: {}", asLiteralString(fid), hex(fileHash));
 		}
 		setHashFromContents();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

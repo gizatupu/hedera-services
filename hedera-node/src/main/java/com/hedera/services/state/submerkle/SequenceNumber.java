@@ -51,7 +51,12 @@ public class SequenceNumber {
 	}
 
 	public void deserialize(SerializableDataInputStream in) throws IOException {
+try {
 		this.i = in.readLong();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	public void serialize(SerializableDataOutputStream out) throws IOException {

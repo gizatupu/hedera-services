@@ -177,7 +177,12 @@ public final class MerkleTopic extends AbstractMerkleLeaf implements FCMValue {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		topicSerde.deserializeV1(in, this);
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

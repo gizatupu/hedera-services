@@ -268,6 +268,7 @@ public class ExpirableTxnRecord implements FCQueueElement<ExpirableTxnRecord> {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		receipt = serdes.readNullableSerializable(in);
 		txnHash = in.readByteArray(MAX_TXN_HASH_BYTES);
 		txnId = serdes.readNullableSerializable(in);
@@ -286,6 +287,10 @@ public class ExpirableTxnRecord implements FCQueueElement<ExpirableTxnRecord> {
 		if (version > RELEASE_080_VERSION) {
 			scheduleRef = serdes.readNullableSerializable(in);
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

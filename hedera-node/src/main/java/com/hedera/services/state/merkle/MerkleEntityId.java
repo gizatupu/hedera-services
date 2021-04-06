@@ -84,9 +84,14 @@ public class MerkleEntityId extends AbstractMerkleLeaf implements FCMKey {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		shard = in.readLong();
 		realm = in.readLong();
 		num = in.readLong();
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

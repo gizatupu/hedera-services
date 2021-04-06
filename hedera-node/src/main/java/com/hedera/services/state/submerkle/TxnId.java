@@ -91,6 +91,7 @@ public class TxnId implements SelfSerializable {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		payerAccount = in.readSerializable(true, EntityId::new);
 		validStart = serdes.deserializeTimestamp(in);
 		if (version >= RELEASE_0120_VERSION) {
@@ -103,6 +104,10 @@ public class TxnId implements SelfSerializable {
 				in.readByteArray(Integer.MAX_VALUE);
 			}
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

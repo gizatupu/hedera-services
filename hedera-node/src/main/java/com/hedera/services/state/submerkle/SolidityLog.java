@@ -85,6 +85,7 @@ public class SolidityLog implements SelfSerializable {
 
 	@Override
 	public void deserialize(SerializableDataInputStream in, int version) throws IOException {
+try {
 		data = in.readByteArray(MAX_DATA_BYTES);
 		bloom = in.readByteArray(MAX_BLOOM_BYTES);
 		contractId = serdes.readNullableSerializable(in);
@@ -95,6 +96,10 @@ public class SolidityLog implements SelfSerializable {
 				topics.add(in.readByteArray(MAX_TOPIC_BYTES));
 			}
 		}
+} catch (Throwable t123) {
+    t123.printStackTrace();
+    throw t123;
+}
 	}
 
 	@Override

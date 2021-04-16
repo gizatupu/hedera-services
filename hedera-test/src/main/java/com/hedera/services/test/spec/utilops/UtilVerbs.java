@@ -47,18 +47,14 @@ import com.hedera.services.test.spec.utilops.pauses.NodeLivenessTimeout;
 import com.hedera.services.test.spec.utilops.streams.RecordStreamVerification;
 import com.hedera.services.test.spec.utilops.throughput.FinishThroughputObs;
 import com.hedera.services.test.spec.utilops.throughput.StartThroughputObs;
-import com.hedera.services.test.spec.suites.crypto.CryptoTransferSuite;
-import com.hedera.services.test.spec.suites.perf.HCSChunkingRealisticPerfSuite;
-import com.hedera.services.test.spec.suites.perf.PerfTestLoadSettings;
-import com.hedera.services.test.spec.suites.utils.sysfiles.serdes.FeesJsonToGrpcBytes;
-import com.hedera.services.test.spec.suites.utils.sysfiles.serdes.SysFileSerde;
+import com.hedera.services.test.spec.utils.FormatHelper;
+import com.hedera.services.test.spec.utils.OpsHelper;
 import com.hederahashgraph.api.proto.java.AccountAmount;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.ContractID;
 import com.hederahashgraph.api.proto.java.CurrentAndNextFeeSchedule;
 import com.hederahashgraph.api.proto.java.FeeSchedule;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
-import com.hederahashgraph.api.proto.java.ServicesConfigurationList;
 import com.hederahashgraph.api.proto.java.Setting;
 import com.hederahashgraph.api.proto.java.TransactionRecord;
 import com.hedera.services.test.spec.HapiApiSpec;
@@ -66,7 +62,6 @@ import com.hedera.services.test.spec.HapiPropertySource;
 import com.hedera.services.test.spec.HapiSpecOperation;
 import com.hedera.services.test.spec.queries.meta.HapiGetTxnRecord;
 import com.hedera.services.test.spec.transactions.system.HapiFreeze;
-import com.hedera.services.test.spec.suites.HapiApiSuite;
 import org.junit.Assert;
 
 import java.io.ByteArrayOutputStream;
@@ -81,7 +76,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -95,8 +89,11 @@ import static com.hedera.services.test.spec.HapiPropertySource.asAccountString;
 import static com.hedera.services.test.spec.assertions.ContractInfoAsserts.contractWith;
 import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.ADDRESS_BOOK_CONTROL;
 import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.APP_PROPERTIES;
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.EXCHANGE_RATE_CONTROL;
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.FEE_SCHEDULE;
 import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.GENESIS;
 import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ADEQUATE_FUNDS;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HBAR;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getAccountBalance;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getContractInfo;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getFileContents;
@@ -317,11 +314,11 @@ public class UtilVerbs {
 					if (ciProperties.has("validateRunningHash")) {
 						validateRunningHash = ciProperties.getBoolean("validateRunningHash");
 					}
-					int threads = PerfTestLoadSettings.DEFAULT_THREADS;
+					int threads = WellKnownValues.DEFAULT_PERF_THREADS;
 					if (ciProperties.has("threads")) {
 						threads = ciProperties.getInteger("threads");
 					}
-					int factor = HCSChunkingRealisticPerfSuite.DEFAULT_COLLISION_AVOIDANCE_FACTOR;
+					int factor = WellKnownValues.DEFAULT_COLLISION_AVOIDANCE_FACTOR;
 					if (ciProperties.has("collisionAvoidanceFactor")) {
 						factor = ciProperties.getInteger("collisionAvoidanceFactor");
 					}
@@ -613,7 +610,7 @@ public class UtilVerbs {
 			assertEquals(
 					String.format(
 							"%s fee (%s) more than %.2f percent different than expected!",
-							CryptoTransferSuite.sdec(actualUsdCharged, 4),
+							FormatHelper.sdec(actualUsdCharged, 4),
 							txn,
 							allowedPercentDiff),
 					expectedUsd,
@@ -639,14 +636,14 @@ public class UtilVerbs {
 	}
 
 	public static HapiSpecOperation[] takeBalanceSnapshots(String... entities) {
-		return HapiApiSuite.flattened(
+		return OpsHelper.flattened(
 				cryptoTransfer(
 						tinyBarsFromTo(GENESIS, EXCHANGE_RATE_CONTROL, 1_000_000_000L)).noLogging(),
 				Stream.of(entities).map(account ->
 						balanceSnapshot(
 								spec -> asAccountString(spec.registry().getAccountID(account)) + "Snapshot",
 								account).payingWith(EXCHANGE_RATE_CONTROL)
-				).toArray(n -> new HapiSpecOperation[n]));
+				).toArray(HapiSpecOperation[]::new));
 	}
 
 	public static HapiSpecOperation validateRecordTransactionFees(String txn) {

@@ -154,10 +154,11 @@ public abstract class HapiApiSuite {
 				.of(ops)
 				.map(op -> (op instanceof HapiSpecOperation)
 						? new HapiSpecOperation[] { (HapiSpecOperation)op }
-						: ((op instanceof List) ? ((List)op).toArray(new HapiSpecOperation[0]) : (HapiSpecOperation[])op))
+						: ((op instanceof List) ? ((List)op).toArray(new Object[0]) : (HapiSpecOperation[])op))
 				.flatMap(Stream::of)
-				.toArray(n -> new HapiSpecOperation[n]);
+				.toArray(HapiSpecOperation[]::new);
 	}
+
 	protected List<HapiApiSpec> allOf(List<HapiApiSpec>... specLists) {
 		return Arrays.stream(specLists).flatMap(List::stream).collect(Collectors.toList());
 	}

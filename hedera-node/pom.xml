@@ -274,6 +274,12 @@
       <version>0.13.0-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>com.hedera.hashgraph</groupId>
+      <artifactId>hedera-test</artifactId>
+      <version>0.13.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.swirlds</groupId>
       <artifactId>swirlds-platform-core</artifactId>
     </dependency>
@@ -292,7 +298,6 @@
     <dependency>
       <groupId>com.hedera.hashgraph</groupId>
       <artifactId>ethereumj-core</artifactId>
-      <version>${ethereum-core.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.ethereum</groupId>

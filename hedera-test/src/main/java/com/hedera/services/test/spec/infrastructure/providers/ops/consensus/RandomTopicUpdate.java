@@ -1,0 +1,74 @@
+package com.hedera.services.test.spec.infrastructure.providers.ops.consensus;
+
+/*-
+ * ‌
+ * Hedera Services Test Clients
+ * ​
+ * Copyright (C) 2018 - 2021 Hedera Hashgraph, LLC
+ * ​
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ‍
+ */
+
+import com.hedera.services.test.spec.HapiSpecOperation;
+import com.hedera.services.test.spec.infrastructure.EntityNameProvider;
+import com.hedera.services.test.spec.infrastructure.OpProvider;
+import com.hedera.services.test.spec.transactions.consensus.HapiTopicUpdate;
+import com.hedera.services.test.spec.transactions.crypto.HapiCryptoUpdate;
+import com.hederahashgraph.api.proto.java.AccountID;
+import com.hederahashgraph.api.proto.java.Key;
+import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
+import com.hederahashgraph.api.proto.java.TopicID;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.hedera.services.test.spec.transactions.TxnVerbs.cryptoUpdate;
+import static com.hedera.services.test.spec.transactions.TxnVerbs.updateTopic;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.ACCOUNT_DELETED;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_ACCOUNT_ID;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_TOPIC_ID;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.TOPIC_EXPIRED;
+import static java.util.Collections.EMPTY_LIST;
+
+public class RandomTopicUpdate implements OpProvider {
+	private final EntityNameProvider<TopicID> topics;
+
+	private final ResponseCodeEnum[] permissibleOutcomes = standardOutcomesAnd(
+			TOPIC_EXPIRED,
+			INVALID_TOPIC_ID
+	);
+
+	public RandomTopicUpdate(
+			EntityNameProvider<TopicID> topics) {
+		this.topics = topics;
+	}
+
+	@Override
+	public List<HapiSpecOperation> suggestedInitializers() {
+		return EMPTY_LIST;
+	}
+
+	@Override
+	public Optional<HapiSpecOperation> get() {
+		final var target = topics.getQualifying();
+		if (target.isEmpty()) {
+			return Optional.empty();
+		}
+
+		HapiTopicUpdate op =  updateTopic(target.get())
+				.hasKnownStatusFrom(permissibleOutcomes)
+				.hasPrecheckFrom(STANDARD_PERMISSIBLE_PRECHECKS);
+		return Optional.of(op);
+	}
+}

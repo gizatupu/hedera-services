@@ -48,6 +48,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.bdd.suites.schedule.ScheduleUtils.fromOrdinary;
 import static com.hedera.services.test.spec.HapiPropertySource.asScheduleString;
 import static com.hedera.services.test.spec.transactions.TxnFactory.bannerWith;
 import static com.hedera.services.test.spec.transactions.TxnUtils.suFrom;
@@ -164,7 +165,7 @@ public class HapiScheduleCreate<T extends HapiTxnOp<T>> extends HapiTxnOp<HapiSc
 							} else {
 								try {
 									var deserializedTxn = TransactionBody.parseFrom(subOp.getBodyBytes());
-									scheduledTxn.set(ScheduleUtils.fromOrdinary(deserializedTxn));
+									scheduledTxn.set(fromOrdinary(deserializedTxn));
 									b.setScheduledTransactionBody(scheduledTxn.get());
 								} catch (InvalidProtocolBufferException fatal) {
 									throw new IllegalStateException("Couldn't deserialize serialized TransactionBody!");

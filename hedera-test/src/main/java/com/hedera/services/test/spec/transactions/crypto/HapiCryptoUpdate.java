@@ -24,26 +24,20 @@ import com.google.common.base.MoreObjects;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt64Value;
-import com.hedera.services.test.spec.HapiPropertySource;
-import com.hedera.services.test.spec.queries.file.HapiGetFileInfo;
+import com.hedera.services.test.spec.HapiApiSpec;
+import com.hedera.services.test.spec.fees.FeeCalculator;
+import com.hedera.services.test.spec.queries.crypto.HapiGetAccountInfo;
+import com.hedera.services.test.spec.transactions.HapiTxnOp;
 import com.hedera.services.test.spec.transactions.TxnUtils;
-import com.hedera.services.test.spec.suites.HapiApiSuite;
-import com.hedera.services.usage.TxnUsage;
 import com.hedera.services.usage.crypto.ExtantCryptoContext;
-import com.hedera.services.usage.file.ExtantFileContext;
 import com.hederahashgraph.api.proto.java.CryptoGetInfoResponse;
 import com.hederahashgraph.api.proto.java.CryptoUpdateTransactionBody;
-import com.hederahashgraph.api.proto.java.FileGetInfoResponse;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.Timestamp;
 import com.hederahashgraph.api.proto.java.Transaction;
 import com.hederahashgraph.api.proto.java.TransactionBody;
 import com.hederahashgraph.api.proto.java.TransactionResponse;
-import com.hedera.services.test.spec.HapiApiSpec;
-import com.hedera.services.test.spec.fees.FeeCalculator;
-import com.hedera.services.test.spec.queries.crypto.HapiGetAccountInfo;
-import com.hedera.services.test.spec.transactions.HapiTxnOp;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,10 +47,8 @@ import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HBAR;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getAccountInfo;
-import static com.hedera.services.test.spec.queries.QueryVerbs.getFileInfo;
-import static com.hedera.services.test.spec.transactions.TxnFactory.expiryGiven;
-import static com.hedera.services.test.spec.transactions.TxnUtils.inConsensusOrder;
 import static com.hedera.services.test.spec.transactions.TxnUtils.defaultUpdateSigners;
 import static com.hedera.services.test.spec.transactions.TxnUtils.suFrom;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.SUCCESS;
@@ -174,7 +166,7 @@ public class HapiCryptoUpdate extends HapiTxnOp<HapiCryptoUpdate> {
 			};
 			return spec.fees().forActivityBasedOp(HederaFunctionality.CryptoUpdate, metricsCalc, txn, numPayerKeys);
 		} catch (Throwable ignore) {
-			return HapiApiSuite.ONE_HBAR;
+			return ONE_HBAR;
 		}
 	}
 

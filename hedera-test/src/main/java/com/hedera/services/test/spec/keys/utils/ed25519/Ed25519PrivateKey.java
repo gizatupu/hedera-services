@@ -39,7 +39,7 @@ public final class Ed25519PrivateKey {
 	final Ed25519PrivateKeyParameters privKeyParams;
 
 	@Nullable
-	private com.hedera.services.bdd.suites.utils.keypairs.Ed25519PublicKey publicKey;
+	private Ed25519PublicKey publicKey;
 
 
 	private Ed25519PrivateKey(Ed25519PrivateKeyParameters privateKeyParameters) {

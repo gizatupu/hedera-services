@@ -33,8 +33,8 @@ import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.APP_PROPERTIES;
 import static com.hedera.services.test.spec.utilops.CustomSpecAssert.allRunFor;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.APP_PROPERTIES;
 
 public class RecordSystemProperty<T> extends UtilOp {
 	private static final Logger log = LogManager.getLogger(RecordSystemProperty.class);

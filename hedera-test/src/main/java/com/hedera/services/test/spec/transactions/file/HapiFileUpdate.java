@@ -31,7 +31,6 @@ import com.hedera.services.test.spec.queries.file.HapiGetFileInfo;
 import com.hedera.services.test.spec.transactions.HapiTxnOp;
 import com.hedera.services.test.spec.transactions.TxnFactory;
 import com.hedera.services.test.spec.transactions.TxnUtils;
-import com.hedera.services.test.spec.suites.HapiApiSuite;
 import com.hedera.services.usage.file.ExtantFileContext;
 import com.hederahashgraph.api.proto.java.ExchangeRateSet;
 import com.hederahashgraph.api.proto.java.FileGetInfoResponse;
@@ -40,14 +39,12 @@ import com.hederahashgraph.api.proto.java.FileUpdateTransactionBody;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.KeyList;
-import com.hederahashgraph.api.proto.java.Response;
 import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
 import com.hederahashgraph.api.proto.java.ServicesConfigurationList;
 import com.hederahashgraph.api.proto.java.Setting;
 import com.hederahashgraph.api.proto.java.Timestamp;
 import com.hederahashgraph.api.proto.java.Transaction;
 import com.hederahashgraph.api.proto.java.TransactionBody;
-import com.hederahashgraph.api.proto.java.TransactionReceipt;
 import com.hederahashgraph.api.proto.java.TransactionResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -67,11 +64,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.API_PERMISSIONS;
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.APP_PROPERTIES;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HBAR;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getFileContents;
 import static com.hedera.services.test.spec.queries.QueryVerbs.getFileInfo;
 import static com.hedera.services.test.spec.transactions.TxnUtils.suFrom;
 import static com.hedera.services.test.spec.utilops.CustomSpecAssert.allRunFor;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.ONE_HBAR;
 import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.EMPTY_SET;
 
@@ -315,7 +314,7 @@ public class HapiFileUpdate extends HapiTxnOp<HapiFileUpdate> {
 		}
 
 		if (!basePropsFile.isPresent()) {
-			if (!file.equals(HapiApiSuite.API_PERMISSIONS) && !file.equals(HapiApiSuite.APP_PROPERTIES)) {
+			if (!file.equals(API_PERMISSIONS) && !file.equals(APP_PROPERTIES)) {
 				throw new IllegalStateException("Property overrides make no sense for file '" + file + "'!");
 			}
 			int getsRemaining = 10;

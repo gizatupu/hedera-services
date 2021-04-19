@@ -21,7 +21,6 @@ package com.hedera.services.test.spec.transactions.token;
  */
 
 import com.hedera.services.test.spec.HapiApiSpec;
-import com.hedera.services.test.spec.transactions.TxnUtils;
 import com.hederahashgraph.api.proto.java.AccountAmount;
 import com.hederahashgraph.api.proto.java.TokenID;
 import com.hederahashgraph.api.proto.java.TokenTransferList;
@@ -59,6 +58,28 @@ public class TokenMovement {
 		this.token = token;
 		this.sender = sender;
 
+		this.amount = amount;
+		this.receiver = receiver;
+		this.receivers = receivers;
+
+		senderFn = Optional.empty();
+		receiverFn = Optional.empty();
+	}
+
+	TokenMovement(
+			String token,
+			Function<HapiApiSpec, String> senderFn,
+			long amount,
+			Function<HapiApiSpec, String> receiverFn
+	) {
+		this.token = token;
+		this.senderFn = Optional.of(senderFn);
+		this.amount = amount;
+		this.receiverFn = Optional.of(receiverFn);
+
+		sender = Optional.empty();
+		receiver = Optional.empty();
+		receivers = Optional.empty();
 	}
 
 	public List<Map.Entry<String, Long>> generallyInvolved() {
@@ -174,11 +195,15 @@ public class TokenMovement {
 		}
 	}
 
+	public boolean isTrulyToken() {
+		return token != HBAR_TOKEN_SENTINEL;
+	}
+
 	public static Builder moving(long amount, String token) {
 		return new Builder(amount, token);
 	}
 
 	public static Builder movingHbar(long amount) {
-		return new Builder(amount, HapiApiSuite.HBAR_TOKEN_SENTINEL);
+		return new Builder(amount, HBAR_TOKEN_SENTINEL);
 	}
 }

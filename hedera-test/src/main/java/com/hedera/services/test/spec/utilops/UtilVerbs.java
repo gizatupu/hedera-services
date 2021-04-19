@@ -23,6 +23,8 @@ package com.hedera.services.test.spec.utilops;
 import com.google.protobuf.ByteString;
 import com.hedera.services.test.spec.infrastructure.OpProvider;
 import com.hedera.services.test.spec.infrastructure.WellKnownValues;
+import com.hedera.services.test.spec.sysfiles.serdes.FeesJsonToGrpcBytes;
+import com.hedera.services.test.spec.sysfiles.serdes.SysFileSerde;
 import com.hedera.services.test.spec.transactions.consensus.HapiMessageSubmit;
 import com.hedera.services.test.spec.transactions.crypto.HapiCryptoTransfer;
 import com.hedera.services.test.spec.transactions.file.HapiFileAppend;

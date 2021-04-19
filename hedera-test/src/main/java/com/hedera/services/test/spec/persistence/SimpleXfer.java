@@ -20,8 +20,9 @@ package com.hedera.services.test.spec.persistence;
  * ‍
  */
 
-import static com.hedera.services.test.spec.suites.HapiApiSuite.FUNDING;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.GENESIS;
+
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.FUNDING;
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.GENESIS;
 
 public class SimpleXfer {
 	static final long DEFAULT_TINYBARS = 1L;

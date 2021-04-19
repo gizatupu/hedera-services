@@ -28,7 +28,7 @@ import com.hedera.services.test.spec.keys.SigControl;
 import com.hedera.services.test.spec.keys.deterministic.Bip0032;
 import com.hedera.services.test.spec.keys.deterministic.Bip0039;
 import com.hedera.services.test.spec.keys.deterministic.Ed25519Factory;
-import com.hedera.services.test.spec.suites.utils.keypairs.Ed25519KeyStore;
+import com.hedera.services.test.spec.keys.utils.ed25519.Ed25519KeyStore;
 import com.hederahashgraph.api.proto.java.Key;
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;

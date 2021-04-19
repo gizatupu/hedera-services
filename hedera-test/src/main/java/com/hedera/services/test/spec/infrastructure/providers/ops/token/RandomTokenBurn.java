@@ -21,37 +21,18 @@ package com.hedera.services.test.spec.infrastructure.providers.ops.token;
  */
 
 import com.hedera.services.test.spec.HapiSpecOperation;
-import com.hedera.services.test.spec.infrastructure.EntityNameProvider;
 import com.hedera.services.test.spec.infrastructure.OpProvider;
 import com.hedera.services.test.spec.infrastructure.providers.names.RegistrySourcedNameProvider;
-import com.hedera.services.test.spec.transactions.TxnVerbs;
-import com.hederahashgraph.api.proto.java.AccountID;
-import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
-import com.hederahashgraph.api.proto.java.TokenCreate;
 import com.hederahashgraph.api.proto.java.TokenID;
 
-import com.hedera.services.test.spec.transactions.token.HapiTokenCreate;
-
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
-//import static com.hedera.services.test.spec.infrastructure.providers.ops.crypto.RandomAccount.INITIAL_BALANCE;
 import static com.hedera.services.test.spec.infrastructure.providers.ops.token.RandomToken.DEFAULT_MAX_SUPPLY;
-import static com.hedera.services.test.spec.keys.KeyShape.randomly;
 import static com.hedera.services.test.spec.transactions.TxnVerbs.burnToken;
-import static com.hedera.services.test.spec.transactions.TxnVerbs.cryptoCreate;
-import static com.hedera.services.test.spec.transactions.TxnVerbs.tokenCreate;
-import static com.hedera.services.test.spec.utilops.UtilVerbs.newKeyNamed;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.GENESIS;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_TOKEN_BURN_AMOUNT;
-import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.TOKENS_PER_ACCOUNT_LIMIT_EXCEEDED;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.TOKEN_HAS_NO_SUPPLY_KEY;
-import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.TOKEN_IS_IMMUTABLE;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.TOKEN_WAS_DELETED;
-import static java.util.stream.Collectors.toList;
 
 public class RandomTokenBurn implements OpProvider {
 	private final RegistrySourcedNameProvider<TokenID> tokens;

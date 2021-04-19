@@ -44,8 +44,8 @@ import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.EMPTY_KEY;
 import static com.hedera.services.test.spec.transactions.TxnUtils.asTopicId;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.EMPTY_KEY;
 import static com.hederahashgraph.api.proto.java.HederaFunctionality.ConsensusUpdateTopic;
 import static com.hedera.services.test.spec.transactions.TxnUtils.asDuration;
 import static com.hedera.services.test.spec.transactions.TxnUtils.asId;

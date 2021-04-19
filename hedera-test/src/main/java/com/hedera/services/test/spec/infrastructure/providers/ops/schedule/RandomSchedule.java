@@ -34,14 +34,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownEntities.DEFAULT_PAYER;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HUNDRED_HBARS;
 import static com.hedera.services.test.spec.infrastructure.providers.ops.crypto.RandomAccount.INITIAL_BALANCE;
 import static com.hedera.services.test.spec.infrastructure.providers.ops.crypto.RandomTransfer.stableAccounts;
 import static com.hedera.services.test.spec.transactions.TxnVerbs.cryptoCreate;
 import static com.hedera.services.test.spec.transactions.TxnVerbs.cryptoTransfer;
 import static com.hedera.services.test.spec.transactions.TxnVerbs.scheduleCreate;
 import static com.hedera.services.test.spec.transactions.crypto.HapiCryptoTransfer.tinyBarsFromTo;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.DEFAULT_PAYER;
-import static com.hedera.services.test.spec.suites.HapiApiSuite.ONE_HUNDRED_HBARS;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.ACCOUNT_DELETED;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INSUFFICIENT_ACCOUNT_BALANCE;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.UNRESOLVABLE_REQUIRED_SIGNERS;

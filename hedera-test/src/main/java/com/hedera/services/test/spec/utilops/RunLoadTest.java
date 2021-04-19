@@ -28,19 +28,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Stopwatch.createStarted;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.DEFAULT_DURATION_CREATE_TOKEN_ASSOCIATION;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.DEFAULT_DURATION_TOKEN_TRANSFER;
 import static com.hedera.services.test.spec.utilops.CustomSpecAssert.allRunFor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-
-import static com.hedera.services.test.spec.suites.perf.PerfTestLoadSettings.DEFAULT_DURATION_CREATE_TOKEN_ASSOCIATION;
-import static com.hedera.services.test.spec.suites.perf.PerfTestLoadSettings.DEFAULT_DURATION_TOKEN_TRANSFER;
 
 
 public class RunLoadTest extends UtilOp {

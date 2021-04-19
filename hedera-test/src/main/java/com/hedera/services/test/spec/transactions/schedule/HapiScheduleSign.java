@@ -25,7 +25,6 @@ import com.hedera.services.test.spec.HapiApiSpec;
 import com.hedera.services.test.spec.fees.FeeCalculator;
 import com.hedera.services.test.spec.infrastructure.RegistryNotFound;
 import com.hedera.services.test.spec.transactions.HapiTxnOp;
-import com.hedera.services.test.spec.suites.HapiApiSuite;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.ScheduleID;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HBAR;
 import static com.hedera.services.test.spec.transactions.TxnUtils.asScheduleId;
 import static com.hedera.services.test.spec.transactions.TxnUtils.suFrom;
 import static com.hederahashgraph.api.proto.java.HederaFunctionality.ScheduleSign;
@@ -112,7 +112,7 @@ public class HapiScheduleSign extends HapiTxnOp<HapiScheduleSign> {
 			return spec.fees().forActivityBasedOp(
 					HederaFunctionality.ScheduleSign, metricsCalc, txn, numPayerKeys);
 		} catch (Throwable ignore) {
-			return HapiApiSuite.ONE_HBAR;
+			return ONE_HBAR;
 		}
 	}
 

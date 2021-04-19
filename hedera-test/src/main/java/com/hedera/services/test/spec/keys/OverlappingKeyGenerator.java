@@ -22,10 +22,10 @@ package com.hedera.services.test.spec.keys;
 
 import com.google.protobuf.ByteString;
 import com.hederahashgraph.api.proto.java.Key;
-import com.hedera.services.legacy.core.HexUtils;
 import com.hedera.services.legacy.proto.utils.KeyExpansion;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class OverlappingKeyGenerator implements KeyGenerator {
 			}
 		}
 		log.debug("**** Hexed Public Keys ****");
-		precomputed.stream().forEach(k -> log.debug(HexUtils.bytes2Hex(k.getEd25519().toByteArray())));
+		precomputed.stream().forEach(k -> log.debug(Hex.toHexString(k.getEd25519().toByteArray())));
 	}
 	private ByteString pubKeyPrefixOf(Key key, int prefixLen) {
 		return key.getEd25519().substring(0, prefixLen);
@@ -79,7 +79,7 @@ public class OverlappingKeyGenerator implements KeyGenerator {
 	public Key genEd25519AndUpdateMap(Map<String, PrivateKey> mutablePkMap) {
 		Key key = precomputed.get(nextKey);
 		nextKey = (nextKey + 1) % precomputed.size();
-		String hexPubKey = HexUtils.bytes2Hex(key.getEd25519().toByteArray());
+		String hexPubKey = Hex.toHexString(key.getEd25519().toByteArray());
 		mutablePkMap.put(hexPubKey, pkMap.get(hexPubKey));
 		return key;
 	}

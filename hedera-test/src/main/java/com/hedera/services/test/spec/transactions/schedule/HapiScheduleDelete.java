@@ -22,13 +22,10 @@ package com.hedera.services.test.spec.transactions.schedule;
 
 import com.google.common.base.MoreObjects;
 import com.hedera.services.test.spec.HapiApiSpec;
-import com.hedera.services.test.spec.HapiPropertySource;
 import com.hedera.services.test.spec.HapiSpecSetup;
 import com.hedera.services.test.spec.fees.FeeCalculator;
-import com.hedera.services.test.spec.queries.schedule.HapiGetScheduleInfo;
 import com.hedera.services.test.spec.transactions.HapiTxnOp;
 import com.hedera.services.test.spec.transactions.TxnUtils;
-import com.hedera.services.test.spec.suites.HapiApiSuite;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.ScheduleDeleteTransactionBody;
@@ -40,11 +37,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.hedera.services.test.spec.queries.QueryVerbs.getScheduleInfo;
+import static com.hedera.services.test.spec.infrastructure.WellKnownValues.ONE_HBAR;
 import static com.hedera.services.test.spec.transactions.TxnUtils.suFrom;
 
 public class HapiScheduleDelete extends HapiTxnOp<HapiScheduleDelete> {
@@ -77,7 +73,7 @@ public class HapiScheduleDelete extends HapiTxnOp<HapiScheduleDelete> {
 					scheduleOpsUsage.scheduleDeleteUsage(_txn, suFrom(svo), info.getExpirationTime().getSeconds());
 			return spec.fees().forActivityBasedOp(HederaFunctionality.ScheduleDelete, metricsCalc, txn, numPayerKeys);
 		} catch (Throwable ignore) {
-			return HapiApiSuite.ONE_HBAR;
+			return ONE_HBAR;
 		}
 	}
 

@@ -21,6 +21,8 @@ package com.hedera.services.test.spec.keys;
  */
 
 import com.google.common.io.Files;
+import com.hedera.services.test.spec.keys.utils.ed25519.Ed25519KeyStore;
+import com.hedera.services.test.spec.keys.utils.ed25519.Ed25519PrivateKey;
 import com.hedera.services.test.spec.keys.utils.legacy.AccountKeyListObj;
 import com.hedera.services.test.spec.keys.utils.legacy.KeyPairObj;
 import com.hedera.services.test.spec.persistence.SpecKey;
@@ -61,6 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.hedera.services.test.spec.keys.SigControl.ON;
+import static com.hedera.services.test.spec.keys.utils.ed25519.SpecUtils.asLegacyKp;
 import static java.util.Map.Entry;
 import static java.util.stream.Collectors.toList;
 
@@ -256,11 +259,11 @@ public class KeyFactory implements Serializable {
 
 		private void signIfNecessary(Key key) throws Throwable {
 			byte[] pubKey = key.getEd25519().toByteArray();
-			String pubKeyHex = HexUtils.bytes2Hex(pubKey);
+			String pubKeyHex = Hex.encodeHexString(pubKey);
 			if (!used.contains(pubKeyHex)) {
 				PrivateKey signer = pkMap.get(pubKeyHex);
 
-				byte[] sig = HexUtils.hexToBytes(SignatureGenerator.signBytes(data, signer));
+				byte[] sig = Hex.decodeHex(SignatureGenerator.signBytes(data, signer));
 				keySigs.add(new AbstractMap.SimpleEntry<>(pubKey, sig));
 				used.add(pubKeyHex);
 			}

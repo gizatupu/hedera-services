@@ -24,6 +24,13 @@ public class HederaTestExtension implements TestInstancePostProcessor {
 		if (client == null) {
 			throw new IllegalStateException("The test class has no TestHapiClient field marked with @Inject");
 		}
+
+		injectTestClient(o, client);
+	}
+
+	private void injectTestClient(Object test, Field testClient) throws IllegalAccessException {
+		testClient.setAccessible(true);
+		testClient.set(test, new TestHapiClient());
 	}
 
 	private boolean isInjectableClient(Field field) {

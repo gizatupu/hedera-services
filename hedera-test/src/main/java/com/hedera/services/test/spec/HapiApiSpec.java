@@ -234,6 +234,7 @@ public class HapiApiSpec implements Runnable {
 				feeCalculator.init();
 				return true;
 			} catch (Throwable t) {
+				t.printStackTrace();
 				secsWait--;
 				if (secsWait < 0) {
 					log.error("Fees failed to initialize! Please check if server is down...", t);
@@ -302,6 +303,7 @@ public class HapiApiSpec implements Runnable {
 		for (HapiSpecOperation op : ops) {
 			Optional<Throwable> error = op.execFor(this);
 			if (error.isPresent()) {
+				error.get().printStackTrace();
 				status = FAILED;
 				break;
 			} else {
@@ -543,6 +545,7 @@ public class HapiApiSpec implements Runnable {
 				restoreContextFlag = false;
 			}
 		} catch (Throwable t) {
+			t.printStackTrace();
 			log.error("Initialization failed for spec '" + name + "'!", t);
 			status = ERROR;
 		}

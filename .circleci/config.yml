@@ -1953,8 +1953,8 @@ workflows:
             context: SonarCloud
             filters:
               branches:
-                ignore:
-                  - /.*-PERF/
+                only:
+                  - ani_test
             workflow-name: "Continuous-integration"
         - build-platform-and-services:
             context: SonarCloud
@@ -1971,13 +1971,13 @@ workflows:
         - jrs-regression:
             context: Slack
             regression_path: /swirlds-platform/regression
-            result_path: results/4N_1C/CI
-            config_type: "ci"
-            workflow-name: "GCP-Commit-Services-Comp-Basic-4N-1C"
+            result_path: results/Personal
+            config_type: "personal"
+            workflow-name: "GCP-Personal-Ani-4N.json"
             name: "run-continuous-integration-gcp"
             continuous_integration: true
-            slack_results_channel: "hedera-cicd"
-            slack_summary_channel: "hedera-cicd"
+            slack_results_channel: "hedera-regression-test"
+            slack_summary_channel: "hedera-regression-test"
             requires:
               - javadoc-generation
             pre-steps:
@@ -2232,6 +2232,7 @@ jobs:
             sed -i -e 's/github.com/services-jrs-regression/g' .gitmodules;
             git submodule update --init --recursive --checkout;
             cd regression;
+            git checkout 0962-D-EnhanceRecordStreamValidatorForAutoRenew;
             cd ..;
             mvn --no-transfer-progress clean install -DskipTests;
 

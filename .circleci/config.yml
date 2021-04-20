@@ -2040,7 +2040,7 @@ jobs:
           command: |
             mkdir -p /repo/test-clients/output
       - run:
-          name: mvn install
+          name: mvn install skip tests
           # use double quote otherwise the backslash of line continuation will be treated as part of mvn parameter
           command: |
             /repo/.circleci/scripts/trap-failure-report.sh \

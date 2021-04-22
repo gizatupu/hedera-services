@@ -29,12 +29,14 @@ import com.hederahashgraph.api.proto.java.Timestamp;
 import com.hederahashgraph.api.proto.java.TokenTransferList;
 import com.hederahashgraph.api.proto.java.TopicID;
 import com.hederahashgraph.api.proto.java.TransferList;
-import com.hedera.services.legacy.config.PropertiesLoader;
 import com.hedera.services.state.merkle.MerkleEntityId;
 import com.swirlds.fcmap.FCMap;
 import org.apache.commons.codec.binary.StringUtils;
 
 import java.util.List;
+
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.MEMO_TOO_LONG;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.OK;
 
 public enum TestContextValidator implements OptionValidator {
 	TEST_VALIDATOR;
@@ -49,12 +51,6 @@ public enum TestContextValidator implements OptionValidator {
 	@Override
 	public boolean isValidExpiry(Timestamp expiry) {
 		return expiry.getSeconds() > CONSENSUS_NOW;
-	}
-
-	@Override
-	public boolean isValidEntityMemo(String memo) {
-		var maxUtf8Bytes = 100;
-		return (null == memo) || (StringUtils.getBytesUtf8(memo).length <= maxUtf8Bytes);
 	}
 
 	@Override
@@ -100,5 +96,10 @@ public enum TestContextValidator implements OptionValidator {
 	@Override
 	public ResponseCodeEnum tokenNameCheck(String name) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ResponseCodeEnum memoCheck(String cand) {
+		return cand.length() <= 100 ? OK : MEMO_TOO_LONG;
 	}
 }

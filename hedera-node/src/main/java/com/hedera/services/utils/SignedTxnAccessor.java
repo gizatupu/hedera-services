@@ -64,8 +64,7 @@ public class SignedTxnAccessor implements TxnAccessor {
 	public static SignedTxnAccessor uncheckedFrom(Transaction validSignedTxn) {
 		try {
 			return new SignedTxnAccessor(validSignedTxn);
-		} catch (Exception impossible) {
-		}
+		} catch (Exception impossible) { }
 		return null;
 	}
 
@@ -141,5 +140,7 @@ public class SignedTxnAccessor implements TxnAccessor {
 
 	public boolean isTriggeredTxn() { return false; }
 
-	public ScheduleID getScheduleRef() { return ScheduleID.getDefaultInstance(); }
+	public ScheduleID getScheduleRef() {
+		throw new UnsupportedOperationException("Only the TriggeredTxnAccessor implementation can refer to a schedule");
+	}
 }

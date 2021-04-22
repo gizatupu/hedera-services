@@ -24,6 +24,7 @@ import com.google.protobuf.ByteString;
 import com.hedera.services.bdd.spec.infrastructure.OpProvider;
 import com.hedera.services.bdd.spec.transactions.consensus.HapiMessageSubmit;
 import com.hedera.services.bdd.spec.transactions.crypto.HapiCryptoTransfer;
+import com.hedera.services.bdd.spec.transactions.file.HapiFileAppend;
 import com.hedera.services.bdd.spec.transactions.file.HapiFileCreate;
 import com.hedera.services.bdd.spec.transactions.file.HapiFileUpdate;
 import com.hedera.services.bdd.spec.utilops.checks.VerifyGetBySolidityIdNotSupported;
@@ -35,6 +36,7 @@ import com.hedera.services.bdd.spec.utilops.grouping.ParallelSpecOps;
 import com.hedera.services.bdd.spec.utilops.inventory.NewSpecKey;
 import com.hedera.services.bdd.spec.utilops.inventory.NewSpecKeyList;
 import com.hedera.services.bdd.spec.utilops.inventory.RecordSystemProperty;
+import com.hedera.services.bdd.spec.utilops.inventory.SpecKeyFromLiteral;
 import com.hedera.services.bdd.spec.utilops.inventory.SpecKeyFromMnemonic;
 import com.hedera.services.bdd.spec.utilops.inventory.SpecKeyFromPem;
 import com.hedera.services.bdd.spec.utilops.inventory.UsableTxnId;
@@ -44,6 +46,7 @@ import com.hedera.services.bdd.spec.utilops.pauses.NodeLivenessTimeout;
 import com.hedera.services.bdd.spec.utilops.streams.RecordStreamVerification;
 import com.hedera.services.bdd.spec.utilops.throughput.FinishThroughputObs;
 import com.hedera.services.bdd.spec.utilops.throughput.StartThroughputObs;
+import com.hedera.services.bdd.suites.crypto.CryptoTransferSuite;
 import com.hedera.services.bdd.suites.perf.HCSChunkingRealisticPerfSuite;
 import com.hedera.services.bdd.suites.perf.PerfTestLoadSettings;
 import com.hedera.services.bdd.suites.utils.sysfiles.serdes.FeesJsonToGrpcBytes;
@@ -153,6 +156,10 @@ public class UtilVerbs {
 
 	public static SpecKeyFromMnemonic keyFromMnemonic(String name, String mnemonic) {
 		return new SpecKeyFromMnemonic(name, mnemonic);
+	}
+
+	public static SpecKeyFromLiteral keyFromLiteral(String name, String hexEncodedPrivateKey) {
+		return new SpecKeyFromLiteral(name, hexEncodedPrivateKey);
 	}
 
 	public static HapiSpecOperation expectedEntitiesExist() {
@@ -275,32 +282,6 @@ public class UtilVerbs {
 						cryptoTransfer(tinyBarsFromTo(GENESIS, account, HapiApiSuite.ADEQUATE_FUNDS));
 				CustomSpecAssert.allRunFor(spec, subOp);
 			}
-		});
-	}
-
-	public static HapiSpecOperation updateToNewThrottlePropsFrom(String throttlePropsLoc) {
-		return withOpContext((spec, opLog) -> {
-			var lookup = getFileContents(APP_PROPERTIES);
-			allRunFor(spec, lookup);
-			var oldContents = lookup.getResponse().getFileGetContents().getFileContents().getContents();
-			var oldConfig = ServicesConfigurationList.parseFrom(oldContents.toByteArray());
-
-			var newConfig = ServicesConfigurationList.newBuilder();
-			oldConfig.getNameValueList()
-					.stream()
-					.filter(UtilVerbs::isNotThrottleProp)
-					.forEach(newConfig::addNameValue);
-			var in = Files.newInputStream(Paths.get(throttlePropsLoc));
-			var jutilProps = new Properties();
-			jutilProps.load(in);
-			for (String name : jutilProps.stringPropertyNames()) {
-				newConfig.addNameValue(from(name, jutilProps.getProperty(name)));
-			}
-
-			var update = fileUpdate(APP_PROPERTIES)
-					.payingWith(ADDRESS_BOOK_CONTROL)
-					.contents(newConfig.build().toByteString());
-			allRunFor(spec, update);
 		});
 	}
 
@@ -510,6 +491,18 @@ public class UtilVerbs {
 			boolean signOnlyWithPayer,
 			OptionalLong tinyBarsToOffer
 	) {
+		return updateLargeFile(payer, fileName, byteString, signOnlyWithPayer, tinyBarsToOffer, op -> {}, op -> {});
+	}
+
+	public static HapiSpecOperation updateLargeFile(
+			String payer,
+			String fileName,
+			ByteString byteString,
+			boolean signOnlyWithPayer,
+			OptionalLong tinyBarsToOffer,
+			Consumer<HapiFileUpdate> updateCustomizer,
+			Consumer<HapiFileAppend> appendCustomizer
+	) {
 		return withOpContext((spec, ctxLog) -> {
 			List<HapiSpecOperation> opsList = new ArrayList<HapiSpecOperation>();
 
@@ -521,6 +514,7 @@ public class UtilVerbs {
 					.hasKnownStatusFrom(SUCCESS, FEE_SCHEDULE_FILE_PART_UPLOADED)
 					.noLogging()
 					.payingWith(payer);
+			updateCustomizer.accept(updateSubOp);
 			if (tinyBarsToOffer.isPresent()) {
 				updateSubOp = updateSubOp.fee(tinyBarsToOffer.getAsLong());
 			}
@@ -536,6 +530,7 @@ public class UtilVerbs {
 						.hasKnownStatusFrom(SUCCESS, FEE_SCHEDULE_FILE_PART_UPLOADED)
 						.noLogging()
 						.payingWith(payer);
+				appendCustomizer.accept(appendSubOp);
 				if (tinyBarsToOffer.isPresent()) {
 					appendSubOp = appendSubOp.fee(tinyBarsToOffer.getAsLong());
 				}
@@ -618,7 +613,8 @@ public class UtilVerbs {
 					/ 100;
 			assertEquals(
 					String.format(
-							"%s fee more than %.2f percent different than expected!",
+							"%s fee (%s) more than %.2f percent different than expected!",
+							CryptoTransferSuite.sdec(actualUsdCharged, 4),
 							txn,
 							allowedPercentDiff),
 					expectedUsd,
@@ -651,14 +647,6 @@ public class UtilVerbs {
 						balanceSnapshot(
 								spec -> asAccountString(spec.registry().getAccountID(account)) + "Snapshot",
 								account).payingWith(EXCHANGE_RATE_CONTROL)
-				).toArray(n -> new HapiSpecOperation[n]));
-	}
-
-	public static HapiSpecOperation[] takeBalanceSnapshotsWithGenesis(String... entities) {
-		return HapiApiSuite.flattened(
-				Stream.of(entities).map(account ->
-						balanceSnapshot(
-								spec -> asAccountString(spec.registry().getAccountID(account)) + "Snapshot", account)
 				).toArray(n -> new HapiSpecOperation[n]));
 	}
 
@@ -769,44 +757,5 @@ public class UtilVerbs {
 	public static boolean isNotThrottleProp(Setting setting) {
 		var name = setting.getName();
 		return !name.startsWith("hapi.throttling");
-	}
-
-	public static HapiSpecOperation ensureIdempotentlyCreated(String txId, String otherTxId) {
-		return withOpContext((spec, opLog) -> {
-			var firstTx = getTxnRecord(txId);
-			var secondTx = getTxnRecord(otherTxId);
-			allRunFor(spec, firstTx, secondTx);
-			assertEquals(
-					firstTx.getResponseRecord().getReceipt().getScheduleID(),
-					secondTx.getResponseRecord().getReceipt().getScheduleID());
-		});
-	}
-
-	public static HapiSpecOperation ensureDifferentScheduledTXCreated(String txId, String otherTxId) {
-		return withOpContext((spec, opLog) -> {
-			var txRecord = getTxnRecord(txId);
-			var otherTxRecord = getTxnRecord(otherTxId);
-
-			allRunFor(spec, txRecord, otherTxRecord);
-
-			Assert.assertNotEquals(
-					"Schedule Ids should not be the same!",
-					txRecord.getResponseRecord().getReceipt().getScheduleID(),
-					otherTxRecord.getResponseRecord().getReceipt().getScheduleID());
-		});
-	}
-
-	public static HapiSpecOperation saveExpirations(String txId, String otherTxId, long afterConsensusTime) {
-		return withOpContext((spec, opLog) -> {
-			var txRecord = getTxnRecord(txId);
-			var otherTxRecord = getTxnRecord(otherTxId);
-
-			allRunFor(spec, txRecord, otherTxRecord);
-
-			var timestampFirst = txRecord.getResponseRecord().getConsensusTimestamp().getSeconds();
-			var timestampSecond = otherTxRecord.getResponseRecord().getConsensusTimestamp().getSeconds();
-			spec.registry().saveExpiry("first", timestampFirst + afterConsensusTime);
-			spec.registry().saveExpiry("second", timestampSecond + afterConsensusTime);
-		});
 	}
 }

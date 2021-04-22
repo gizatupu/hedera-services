@@ -114,9 +114,9 @@ class MerkleTopicUpdateTransitionLogicTest {
 		given(validator.isValidAutoRenewPeriod(
 				Duration.newBuilder().setSeconds(INVALID_AUTORENEW_PERIOD_SECONDS).build()))
 				.willReturn(false);
-		given(validator.isValidEntityMemo("")).willReturn(true);
-		given(validator.isValidEntityMemo(VALID_MEMO)).willReturn(true);
-		given(validator.isValidEntityMemo(TOO_LONG_MEMO)).willReturn(false);
+		given(validator.memoCheck("")).willReturn(OK);
+		given(validator.memoCheck(VALID_MEMO)).willReturn(OK);
+		given(validator.memoCheck(TOO_LONG_MEMO)).willReturn(MEMO_TOO_LONG);
 
 		subject = new TopicUpdateTransitionLogic(() -> accounts, () -> topics, validator, transactionContext);
 	}
@@ -167,7 +167,7 @@ class MerkleTopicUpdateTransitionLogicTest {
 		assertArrayEquals(JKey.mapKey(updatedAdminKey).serialize(), topic.getAdminKey().serialize());
 		assertArrayEquals(JKey.mapKey(updatedSubmitKey).serialize(), topic.getSubmitKey().serialize());
 		assertEquals(VALID_AUTORENEW_PERIOD_SECONDS, topic.getAutoRenewDurationSeconds());
-		assertEquals(EntityId.ofNullableAccountId(MISC_ACCOUNT), topic.getAutoRenewAccountId());
+		assertEquals(EntityId.fromGrpcAccountId(MISC_ACCOUNT), topic.getAutoRenewAccountId());
 		assertEquals(updatedExpirationTime.getEpochSecond(), topic.getExpirationTimestamp().getSeconds());
 	}
 
@@ -395,7 +395,7 @@ class MerkleTopicUpdateTransitionLogicTest {
 	private void givenExistingTopicWithAutoRenewAccount() throws Throwable {
 		var existingTopic = new MerkleTopic(EXISTING_MEMO, JKey.mapKey(existingKey), null,
 				EXISTING_AUTORENEW_PERIOD_SECONDS,
-				EntityId.ofNullableAccountId(MISC_ACCOUNT), EXISTING_EXPIRATION_TIME);
+				EntityId.fromGrpcAccountId(MISC_ACCOUNT), EXISTING_EXPIRATION_TIME);
 		topics.put(MerkleEntityId.fromTopicId(TOPIC_ID), existingTopic);
 		given(validator.queryableTopicStatus(TOPIC_ID, topics)).willReturn(OK);
 	}

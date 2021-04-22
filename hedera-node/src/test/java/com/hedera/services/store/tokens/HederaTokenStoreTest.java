@@ -32,12 +32,9 @@ import com.hedera.services.sigs.utils.ImmutableKeyUtils;
 import com.hedera.services.state.merkle.MerkleAccount;
 import com.hedera.services.state.merkle.MerkleAccountTokens;
 import com.hedera.services.state.merkle.MerkleEntityId;
-import com.hedera.services.state.merkle.MerkleSchedule;
 import com.hedera.services.state.merkle.MerkleToken;
 import com.hedera.services.state.merkle.MerkleTokenRelStatus;
 import com.hedera.services.state.submerkle.EntityId;
-import com.hedera.services.state.submerkle.RichInstant;
-import com.hedera.services.store.schedule.ContentAddressableSchedule;
 import com.hedera.test.factories.scenarios.TxnHandlingScenario;
 import com.hedera.test.utils.IdUtils;
 import com.hederahashgraph.api.proto.java.AccountID;
@@ -60,7 +57,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -71,7 +67,6 @@ import static com.hedera.services.ledger.properties.AccountProperty.IS_DELETED;
 import static com.hedera.services.ledger.properties.TokenRelProperty.IS_FROZEN;
 import static com.hedera.services.ledger.properties.TokenRelProperty.IS_KYC_GRANTED;
 import static com.hedera.services.ledger.properties.TokenRelProperty.TOKEN_BALANCE;
-import static com.hedera.services.state.merkle.MerkleEntityId.fromScheduleId;
 import static com.hedera.services.state.merkle.MerkleEntityId.fromTokenId;
 import static com.hedera.test.factories.scenarios.TxnHandlingScenario.COMPLEX_KEY_ACCOUNT_KT;
 import static com.hedera.test.factories.scenarios.TxnHandlingScenario.MISC_ACCOUNT_KT;
@@ -187,7 +182,7 @@ class HederaTokenStoreTest {
 		given(token.adminKey()).willReturn(Optional.of(TOKEN_ADMIN_KT.asJKeyUnchecked()));
 		given(token.name()).willReturn(name);
 		given(token.hasAdminKey()).willReturn(true);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 
 		ids = mock(EntityIdSource.class);
 		given(ids.newTokenId(sponsor)).willReturn(created);
@@ -756,7 +751,7 @@ class HederaTokenStoreTest {
 	@Test
 	public void wipingRejectsTokenWithNoWipeKey() {
 		// when:
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 
 		var status = subject.wipe(sponsor, misc, adjustment, false);
 
@@ -770,7 +765,7 @@ class HederaTokenStoreTest {
 		long wiping = 3L;
 
 		given(token.hasWipeKey()).willReturn(true);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(sponsor));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(sponsor));
 
 		// when:
 		var status = subject.wipe(sponsor, misc, wiping, false);
@@ -785,7 +780,7 @@ class HederaTokenStoreTest {
 		// setup:
 		long balance = 1_234L;
 		given(token.hasWipeKey()).willReturn(false);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 		// and:
 		given(tokenRelsLedger.exists(sponsorMisc)).willReturn(false);
 
@@ -801,7 +796,7 @@ class HederaTokenStoreTest {
 	public void wipingWorksWithoutWipeKeyIfCheckSkipped() {
 		// setup:
 		given(token.hasWipeKey()).willReturn(false);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 		// and:
 		given(tokens.getForModify(fromTokenId(misc))).willReturn(token);
 
@@ -822,7 +817,7 @@ class HederaTokenStoreTest {
 	public void wipingUpdatesTokenXfersAsExpected() {
 		// setup:
 		given(token.hasWipeKey()).willReturn(true);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 		// and:
 		given(tokens.getForModify(fromTokenId(misc))).willReturn(token);
 
@@ -846,7 +841,7 @@ class HederaTokenStoreTest {
 		long wipe = 1_235L;
 
 		given(token.hasWipeKey()).willReturn(true);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 
 		// when:
 		var status = subject.wipe(sponsor, misc, wipe, false);
@@ -1159,7 +1154,7 @@ class HederaTokenStoreTest {
 		verify(token).setSymbol(newSymbol);
 		verify(token).setName(newName);
 		verify(token).setExpiry(newExpiry);
-		verify(token).setTreasury(EntityId.ofNullableAccountId(newTreasury));
+		verify(token).setTreasury(EntityId.fromGrpcAccountId(newTreasury));
 		verify(token).setAdminKey(argThat((JKey k) -> JKey.equalUpToDecodability(k, newFcKey)));
 		verify(token).setFreezeKey(argThat((JKey k) -> JKey.equalUpToDecodability(k, newFcKey)));
 		verify(token).setKycKey(argThat((JKey k) -> JKey.equalUpToDecodability(k, newFcKey)));
@@ -1212,7 +1207,7 @@ class HederaTokenStoreTest {
 
 		// then:
 		assertEquals(OK, outcome);
-		verify(token).setAutoRenewAccount(EntityId.ofNullableAccountId(newAutoRenewAccount));
+		verify(token).setAutoRenewAccount(EntityId.fromGrpcAccountId(newAutoRenewAccount));
 		verify(token).setAutoRenewPeriod(newAutoRenewPeriod);
 	}
 
@@ -1425,7 +1420,7 @@ class HederaTokenStoreTest {
 	public void burningRejectsDueToInsufficientFundsInTreasury() {
 		given(token.hasSupplyKey()).willReturn(true);
 		given(token.totalSupply()).willReturn(treasuryBalance * 2);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 
 		// when:
 		var status = subject.burn(misc, treasuryBalance + 1);
@@ -1477,7 +1472,7 @@ class HederaTokenStoreTest {
 
 		given(token.hasSupplyKey()).willReturn(true);
 		given(token.totalSupply()).willReturn(oldSupply);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 		// and:
 		given(tokens.getForModify(fromTokenId(misc))).willReturn(token);
 
@@ -1505,7 +1500,7 @@ class HederaTokenStoreTest {
 
 		given(token.hasSupplyKey()).willReturn(true);
 		given(token.totalSupply()).willReturn(oldTotalSupply);
-		given(token.treasury()).willReturn(EntityId.ofNullableAccountId(treasury));
+		given(token.treasury()).willReturn(EntityId.fromGrpcAccountId(treasury));
 		// and:
 		given(tokens.getForModify(fromTokenId(misc))).willReturn(token);
 
@@ -1685,7 +1680,7 @@ class HederaTokenStoreTest {
 				freezeDefault,
 				accountsKycGrantedByDefault,
 				new EntityId(treasury.getShardNum(), treasury.getRealmNum(), treasury.getAccountNum()));
-		expected.setAutoRenewAccount(EntityId.ofNullableAccountId(autoRenewAccount));
+		expected.setAutoRenewAccount(EntityId.fromGrpcAccountId(autoRenewAccount));
 		expected.setAutoRenewPeriod(autoRenewPeriod);
 		expected.setAdminKey(TOKEN_ADMIN_KT.asJKeyUnchecked());
 		expected.setFreezeKey(TOKEN_FREEZE_KT.asJKeyUnchecked());

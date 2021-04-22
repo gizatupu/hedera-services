@@ -31,6 +31,8 @@ import com.hedera.services.bdd.spec.infrastructure.meta.SupportedContract;
 import com.hedera.services.bdd.spec.stats.OpObs;
 import com.hedera.services.bdd.spec.stats.ThroughputObs;
 import com.hedera.services.bdd.suites.HapiApiSuite;
+import com.hedera.services.legacy.core.HexUtils;
+import com.hedera.services.legacy.core.KeyPairObj;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.ConsensusCreateTopicTransactionBody;
 import com.hederahashgraph.api.proto.java.ConsensusUpdateTopicTransactionBody;
@@ -41,18 +43,23 @@ import com.hederahashgraph.api.proto.java.FileGetInfoResponse;
 import com.hederahashgraph.api.proto.java.FileID;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.KeyList;
+import com.hederahashgraph.api.proto.java.SchedulableTransactionBody;
 import com.hederahashgraph.api.proto.java.ScheduleID;
 import com.hederahashgraph.api.proto.java.Timestamp;
 import com.hederahashgraph.api.proto.java.TokenID;
 import com.hederahashgraph.api.proto.java.TopicID;
 import com.hederahashgraph.api.proto.java.TransactionID;
-import com.hedera.services.legacy.core.HexUtils;
-import com.hedera.services.legacy.core.KeyPairObj;
 import com.hederahashgraph.api.proto.java.TransactionRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +72,9 @@ import static com.hedera.services.bdd.spec.HapiPropertySource.asAccountString;
 import static com.hedera.services.bdd.spec.HapiPropertySource.asScheduleString;
 import static com.hedera.services.bdd.spec.HapiPropertySource.asTokenString;
 import static com.hedera.services.bdd.spec.keys.KeyFactory.firstStartupKp;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 public class HapiSpecRegistry {
 	static final Logger log = LogManager.getLogger(HapiSpecRegistry.class);
@@ -126,6 +135,9 @@ public class HapiSpecRegistry {
 		/* (system 7) :: Update Feature */
 		saveFileId(setup.updateFeatureName(), setup.updateFeatureId());
 		saveKey(setup.updateFeatureName(), asKeyList(genesisKey));
+		/* (system 8) :: Throttle Definitions */
+		saveFileId(setup.throttleDefinitionsName(), setup.throttleDefinitionsId());
+		saveKey(setup.throttleDefinitionsName(), asKeyList(genesisKey));
 		/* Migration :: File */
 		saveFileId(setup.migrationFileName(), setup.migrationFileID());
 		saveKey(setup.migrationFileName(), asKeyList(genesisKey));
@@ -494,6 +506,14 @@ public class HapiSpecRegistry {
 		} catch (Throwable ignore) {
 			return false;
 		}
+	}
+
+	public void saveScheduledTxn(String name, SchedulableTransactionBody scheduledTxn) {
+		put(name, scheduledTxn);
+	}
+
+	public SchedulableTransactionBody getScheduledTxn(String name) {
+		return get(name, SchedulableTransactionBody.class);
 	}
 
 	public void saveTxnId(String name, TransactionID txnId) {

@@ -98,7 +98,7 @@ public class CryptoCreateTransitionLogicTest {
 	@Test
 	public void returnsMemoTooLongWhenValidatorSays() {
 		givenValidTxnCtx();
-		given(validator.isValidEntityMemo(memo)).willReturn(false);
+		given(validator.memoCheck(memo)).willReturn(MEMO_TOO_LONG);
 
 		// expect:
 		assertEquals(MEMO_TOO_LONG, subject.syntaxCheck().apply(cryptoCreateTxn));
@@ -202,7 +202,7 @@ public class CryptoCreateTransitionLogicTest {
 		assertEquals(expiry, (long)changes.get(EXPIRY));
 		assertEquals(key, JKey.mapJKey((JKey)changes.get(KEY)));
 		assertEquals(true, changes.get(IS_RECEIVER_SIG_REQUIRED));
-		assertEquals(EntityId.ofNullableAccountId(proxy), changes.get(PROXY));
+		assertEquals(EntityId.fromGrpcAccountId(proxy), changes.get(PROXY));
 		assertEquals(memo, changes.get(MEMO));
 	}
 
@@ -329,6 +329,6 @@ public class CryptoCreateTransitionLogicTest {
 	private void withRubberstampingValidator() {
 		given(validator.isValidAutoRenewPeriod(any())).willReturn(true);
 		given(validator.hasGoodEncoding(any())).willReturn(true);
-		given(validator.isValidEntityMemo(any())).willReturn(true);
+		given(validator.memoCheck(any())).willReturn(OK);
 	}
 }

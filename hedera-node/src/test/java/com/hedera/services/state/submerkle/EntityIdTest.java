@@ -20,6 +20,7 @@ package com.hedera.services.state.submerkle;
  * ‍
  */
 
+import com.hedera.services.state.merkle.MerkleEntityId;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.ContractID;
 import com.hederahashgraph.api.proto.java.FileID;
@@ -41,6 +42,8 @@ public class EntityIdTest {
 
 	SerializableDataInputStream in;
 	SerializableDataOutputStream out;
+
+	MerkleEntityId merkleId = new MerkleEntityId(shard, realm, num);
 
 	FileID fileId = FileID.newBuilder()
 			.setShardNum(shard)
@@ -129,19 +132,19 @@ public class EntityIdTest {
 	@Test
 	public void factoriesWork() {
 		// expect:
-		assertNull(EntityId.ofNullableFileId(null));
-		assertNull(EntityId.ofNullableAccountId(null));
-		assertNull(EntityId.ofNullableContractId(null));
-		assertNull(EntityId.ofNullableTopicId(null));
-		assertNull(EntityId.ofNullableTokenId(null));
-		assertNull(EntityId.ofNullableScheduleId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcAccountId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcFileId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcTopicId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcTokenId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcScheduleId(null));
+		assertThrows(IllegalArgumentException.class, () -> EntityId.fromGrpcContractId(null));
 		// and:
-		assertEquals(subject, EntityId.ofNullableAccountId(accountId));
-		assertEquals(subject, EntityId.ofNullableContractId(contractId));
-		assertEquals(subject, EntityId.ofNullableTopicId(topicId));
-		assertEquals(subject, EntityId.ofNullableFileId(fileId));
-		assertEquals(subject, EntityId.ofNullableTokenId(tokenId));
-		assertEquals(subject, EntityId.ofNullableScheduleId(scheduleId));
+		assertEquals(subject, EntityId.fromGrpcAccountId(accountId));
+		assertEquals(subject, EntityId.fromGrpcContractId(contractId));
+		assertEquals(subject, EntityId.fromGrpcTopicId(topicId));
+		assertEquals(subject, EntityId.fromGrpcFileId(fileId));
+		assertEquals(subject, EntityId.fromGrpcTokenId(tokenId));
+		assertEquals(subject, EntityId.fromGrpcScheduleId(scheduleId));
 	}
 
 	@Test
@@ -189,5 +192,6 @@ public class EntityIdTest {
 		assertEquals(contractId, subject.toGrpcContractId());
 		assertEquals(tokenId, subject.toGrpcTokenId());
 		assertEquals(scheduleId, subject.toGrpcScheduleId());
+		assertEquals(merkleId, subject.asMerkle());
 	}
 }

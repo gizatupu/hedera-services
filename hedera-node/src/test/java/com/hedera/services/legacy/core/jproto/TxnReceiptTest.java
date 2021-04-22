@@ -21,7 +21,6 @@ package com.hedera.services.legacy.core.jproto;
  */
 
 import com.google.protobuf.ByteString;
-import com.hedera.services.fees.calculation.TxnResourceUsageEstimator;
 import com.hedera.services.state.serdes.DomainSerdes;
 import com.hedera.services.state.submerkle.EntityId;
 import com.hedera.services.state.submerkle.ExchangeRates;
@@ -59,7 +58,6 @@ public class TxnReceiptTest {
   final TransactionID scheduledTxnId = TransactionID.newBuilder()
 		  .setScheduled(true)
           .setAccountID(IdUtils.asAccount("0.0.2"))
-          .setNonce(ByteString.copyFromUtf8("Something something something"))
           .build();
 
   DomainSerdes serdes;
@@ -133,7 +131,7 @@ public class TxnReceiptTest {
             .setTopicID(topicId).build();
     final var cut = TxnReceipt.fromGrpc(receipt);
 
-    assertAll(() -> assertEquals(EntityId.ofNullableTopicId(topicId), cut.getTopicId()),
+    assertAll(() -> assertEquals(EntityId.fromGrpcTopicId(topicId), cut.getTopicId()),
             () -> assertNull(cut.getAccountId()),
             () -> assertNull(cut.getFileId()),
             () -> assertNull(cut.getContractId()),
@@ -282,7 +280,7 @@ public class TxnReceiptTest {
 
   @Test
   public void scheduleConstructor() {
-    final var scheduleId = EntityId.ofNullableScheduleId(IdUtils.asSchedule("0.0.123"));
+    final var scheduleId = EntityId.fromGrpcScheduleId(IdUtils.asSchedule("0.0.123"));
     final var cut = new TxnReceipt(
             "SUCCESS", null, null, null, null, scheduleId, null,
             null, 0L, TxnReceipt.MISSING_RUNNING_HASH, 0, 0,
@@ -294,7 +292,7 @@ public class TxnReceiptTest {
 
   @Test
   public void hcsConstructor() {
-    final var topicId = EntityId.ofNullableTopicId(TopicID.newBuilder().setTopicNum(1L).build());
+    final var topicId = EntityId.fromGrpcTopicId(TopicID.newBuilder().setTopicNum(1L).build());
     final var sequenceNumber = 2L;
     final var runningHash = new byte[3];
     final var cut = new TxnReceipt(
@@ -310,7 +308,7 @@ public class TxnReceiptTest {
   }
   @Test
   public void tokenConstructorWithTokenId() {
-    final var tokenId = EntityId.ofNullableTokenId(
+    final var tokenId = EntityId.fromGrpcTokenId(
             TokenID.newBuilder().setTokenNum(1001L).setRealmNum(0).setShardNum(0).build());
     final var cut = new TxnReceipt(
             "SUCCESS", null, null, null, tokenId, null, null,
@@ -324,7 +322,7 @@ public class TxnReceiptTest {
 
   @Test
   public void tokenConstructorWithTotalSupply() {
-    final var tokenId = EntityId.ofNullableTokenId(
+    final var tokenId = EntityId.fromGrpcTokenId(
             TokenID.newBuilder().setTokenNum(1001L).setRealmNum(0).setShardNum(0).build());
     final var cut = new TxnReceipt(
             "SUCCESS", null, null, null, tokenId, null, null,
@@ -362,7 +360,7 @@ public class TxnReceiptTest {
 
   @Test
   public void v0120DeserializeWorks() throws IOException {
-    final var scheduleId = EntityId.ofNullableScheduleId(IdUtils.asSchedule("0.0.312"));
+    final var scheduleId = EntityId.fromGrpcScheduleId(IdUtils.asSchedule("0.0.312"));
     SerializableDataInputStream fin = mock(SerializableDataInputStream.class);
     subject = new TxnReceipt("SUCCESS", null, null, null,
             null,scheduleId, mockRates,
@@ -401,7 +399,7 @@ public class TxnReceiptTest {
 
   @Test
   public void v0100DeserializeWorks() throws IOException {
-    final var tokenId = EntityId.ofNullableTokenId(
+    final var tokenId = EntityId.fromGrpcTokenId(
             TokenID.newBuilder().setTokenNum(1001L).setRealmNum(0).setShardNum(0).build());
     SerializableDataInputStream fin = mock(SerializableDataInputStream.class);
     subject = new TxnReceipt("SUCCESS", null, null, null,

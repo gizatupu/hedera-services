@@ -89,6 +89,7 @@ public abstract class HapiApiSuite {
 
 	public static final Key EMPTY_KEY = Key.newBuilder().setKeyList(KeyList.newBuilder().build()).build();
 	public static final String NONSENSE_KEY = "Jabberwocky!";
+	public static final String ZERO_BYTE_MEMO = "\u0000kkkk";
 
 	public static final String NODE = HapiSpecSetup.getDefaultInstance().defaultNodeName();
 
@@ -113,6 +114,7 @@ public abstract class HapiApiSuite {
 	public static final String APP_PROPERTIES = HapiSpecSetup.getDefaultInstance().appPropertiesFile();
 	public static final String API_PERMISSIONS = HapiSpecSetup.getDefaultInstance().apiPermissionsFile();
 	public static final String UPDATE_ZIP_FILE = HapiSpecSetup.getDefaultInstance().updateFeatureName();
+	public static final String THROTTLE_DEFS = HapiSpecSetup.getDefaultInstance().throttleDefinitionsName();
 	public static final HapiSpecSetup DEFAULT_PROPS = HapiSpecSetup.getDefaultInstance();
 	public static final long ADEQUATE_FUNDS = 10_000_000_000L;
 

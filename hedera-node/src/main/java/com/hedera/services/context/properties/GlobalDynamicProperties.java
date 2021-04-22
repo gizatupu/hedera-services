@@ -21,6 +21,7 @@ package com.hedera.services.context.properties;
  */
 
 import com.hedera.services.config.HederaNumbers;
+import com.hedera.services.fees.calculation.CongestionMultipliers;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 
@@ -58,7 +59,10 @@ public class GlobalDynamicProperties {
 	private long minAutoRenewDuration;
 	private int localCallEstRetBytes;
 	private int scheduledTxExpiryTimeSecs;
+	private int messageMaxBytesAllowed;
 	private Set<HederaFunctionality> schedulingWhitelist;
+	private CongestionMultipliers congestionMultipliers;
+	private int feesMinCongestionPeriod;
 
 	public GlobalDynamicProperties(
 			HederaNumbers hederaNums,
@@ -104,6 +108,9 @@ public class GlobalDynamicProperties {
 		localCallEstRetBytes = properties.getIntProperty("contracts.localCall.estRetBytes");
 		scheduledTxExpiryTimeSecs = properties.getIntProperty("ledger.schedule.txExpiryTimeSecs");
 		schedulingWhitelist = properties.getFunctionsProperty("scheduling.whitelist");
+		messageMaxBytesAllowed = properties.getIntProperty( "consensus.message.maxBytesAllowed");
+		congestionMultipliers = properties.getCongestionMultiplierProperty("fees.percentCongestionMultipliers");
+		feesMinCongestionPeriod = properties.getIntProperty("fees.minCongestionPeriod");
 	}
 
 	public int maxTokensPerAccount() {
@@ -218,7 +225,19 @@ public class GlobalDynamicProperties {
 		return scheduledTxExpiryTimeSecs;
 	}
 
+	public int messageMaxBytesAllowed() {
+		return messageMaxBytesAllowed;
+	}
+
 	public Set<HederaFunctionality> schedulingWhitelist() {
 		return schedulingWhitelist;
+	}
+
+	public CongestionMultipliers congestionMultipliers() {
+		return congestionMultipliers;
+	}
+
+	public int feesMinCongestionPeriod() {
+		return feesMinCongestionPeriod;
 	}
 }

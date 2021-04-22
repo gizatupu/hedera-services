@@ -21,6 +21,7 @@ package com.hedera.services.state.submerkle;
  */
 
 import com.google.common.base.MoreObjects;
+import com.hedera.services.state.merkle.MerkleEntityId;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.ContractID;
 import com.hederahashgraph.api.proto.java.FileID;
@@ -136,40 +137,46 @@ public class EntityId implements SelfSerializable {
 
 	/* --- Helpers --- */
 
-	public static EntityId ofNullableAccountId(AccountID accountId) {
-		return (accountId == null )
-				? null
-				: new EntityId(accountId.getShardNum(), accountId.getRealmNum(), accountId.getAccountNum());
+	public static EntityId fromGrpcAccountId(AccountID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given account id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getAccountNum());
 	}
 
-	public static EntityId ofNullableFileId(FileID fileId) {
-		return (fileId == null )
-				? null
-				: new EntityId(fileId.getShardNum(), fileId.getRealmNum(), fileId.getFileNum());
+	public static EntityId fromGrpcFileId(FileID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given file id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getFileNum());
 	}
 
-	public static EntityId ofNullableTopicId(TopicID topicId) {
-		return (topicId == null )
-				? null
-				: new EntityId(topicId.getShardNum(), topicId.getRealmNum(), topicId.getTopicNum());
+	public static EntityId fromGrpcTopicId(TopicID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given topic id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getTopicNum());
 	}
 
-	public static EntityId ofNullableTokenId(TokenID tokenId) {
-		return (tokenId == null )
-				? null
-				: new EntityId(tokenId.getShardNum(), tokenId.getRealmNum(), tokenId.getTokenNum());
+	public static EntityId fromGrpcTokenId(TokenID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given token id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getTokenNum());
 	}
 
-	public static EntityId ofNullableScheduleId(ScheduleID scheduleID) {
-		return (scheduleID == null )
-				? null
-				: new EntityId(scheduleID.getShardNum(), scheduleID.getRealmNum(), scheduleID.getScheduleNum());
+	public static EntityId fromGrpcScheduleId(ScheduleID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given schedule id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getScheduleNum());
 	}
 
-	public static EntityId ofNullableContractId(ContractID contractId) {
-		return (contractId == null )
-				? null
-				: new EntityId(contractId.getShardNum(), contractId.getRealmNum(), contractId.getContractNum());
+	public static EntityId fromGrpcContractId(ContractID id) {
+		if (id == null) {
+			throw new IllegalArgumentException("Given contract id was null!");
+		}
+		return new EntityId(id.getShardNum(), id.getRealmNum(), id.getContractNum());
 	}
 
 	public ContractID toGrpcContractId() {
@@ -202,5 +209,9 @@ public class EntityId implements SelfSerializable {
 				.setRealmNum(realm)
 				.setAccountNum(num)
 				.build();
+	}
+
+	public MerkleEntityId asMerkle() {
+		return new MerkleEntityId(shard, realm, num);
 	}
 }

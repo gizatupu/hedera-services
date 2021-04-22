@@ -22,7 +22,6 @@ package com.hedera.services.txns.crypto;
 
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.StringValue;
-import com.google.protobuf.UInt64Value;
 import com.hedera.services.context.TransactionContext;
 import com.hedera.services.exceptions.DeletedAccountException;
 import com.hedera.services.exceptions.MissingAccountException;
@@ -109,7 +108,7 @@ public class CryptoUpdateTransitionLogicTest {
 		// and:
 		EnumMap<AccountProperty, Object> changes = captor.getValue().getChanges();
 		assertEquals(1, changes.size());
-		assertEquals(EntityId.ofNullableAccountId(proxy), changes.get(AccountProperty.PROXY));
+		assertEquals(EntityId.fromGrpcAccountId(proxy), changes.get(AccountProperty.PROXY));
 	}
 
 
@@ -247,7 +246,7 @@ public class CryptoUpdateTransitionLogicTest {
 	@Test
 	public void rejectsInvalidMemo() {
 		givenValidTxnCtx(EnumSet.of(MEMO));
-		given(validator.isValidEntityMemo(memo)).willReturn(false);
+		given(validator.memoCheck(memo)).willReturn(MEMO_TOO_LONG);
 
 		// expect:
 		assertEquals(MEMO_TOO_LONG, subject.syntaxCheck().apply(cryptoUpdateTxn));
@@ -395,6 +394,6 @@ public class CryptoUpdateTransitionLogicTest {
 		given(validator.isValidAutoRenewPeriod(any())).willReturn(true);
 		given(validator.isValidExpiry(any())).willReturn(true);
 		given(validator.hasGoodEncoding(any())).willReturn(true);
-		given(validator.isValidEntityMemo(any())).willReturn(true);
+		given(validator.memoCheck(any())).willReturn(OK);
 	}
 }

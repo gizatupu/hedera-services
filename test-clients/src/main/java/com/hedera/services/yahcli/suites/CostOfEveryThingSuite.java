@@ -1,5 +1,25 @@
 package com.hedera.services.yahcli.suites;
 
+/*-
+ * ‌
+ * Hedera Services Test Clients
+ * ​
+ * Copyright (C) 2018 - 2021 Hedera Hashgraph, LLC
+ * ​
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ‍
+ */
+
 import com.hedera.services.bdd.spec.HapiApiSpec;
 import com.hedera.services.bdd.suites.HapiApiSuite;
 import org.apache.logging.log4j.LogManager;
@@ -78,22 +98,10 @@ import static java.util.stream.Collectors.toList;
 public class CostOfEveryThingSuite extends HapiApiSuite {
 	private static final Logger log = LogManager.getLogger(CostOfEveryThingSuite.class);
 
-	enum service {
-		CRYPTO, CONSENSUS, TOKEN, FILE, CONTRACT, SCHEDULED, INVALID
-	}
-
-	private final Map<String, service> SERVICES_TO_ENUM = Map.ofEntries(
-			Map.entry("crypto", service.CRYPTO),
-			Map.entry("consensus", service.CONSENSUS),
-			Map.entry("token", service.TOKEN),
-			Map.entry("file", service.FILE),
-			Map.entry("contract", service.CONTRACT),
-			Map.entry("scheduled", service.SCHEDULED));
-	private final Set<service> VALID_SERVICES = new HashSet<>(SERVICES_TO_ENUM.values());
 
 	HapiApiSpec.CostSnapshotMode costSnapshotMode = TAKE;
 	private final Map<String, String> specConfig;
-	private final EnumSet<service> services;
+	private final EnumSet<Utils.ServiceType> ServiceTypes;
 	private StringBuilder feeTableBuilder;
 	private String serviceBorder;
 
@@ -102,20 +110,7 @@ public class CostOfEveryThingSuite extends HapiApiSuite {
 		this.specConfig = specConfig;
 		this.feeTableBuilder = feeTableBuilder;
 		this.serviceBorder = serviceBorder;
-		this.services = rationalized(services);
-	}
-
-	private EnumSet<service> rationalized(final String[] services) {
-		if(Arrays.asList(services).contains("all")) {
-			return EnumSet.copyOf(VALID_SERVICES);
-		}
-		return Arrays.stream(services)
-				.map(s -> SERVICES_TO_ENUM.getOrDefault(s, service.INVALID))
-				.peek(s -> {
-					if (!VALID_SERVICES.contains(s)) {
-						throw new IllegalArgumentException("Invalid service provided!");
-					}
-				}).collect(Collectors.toCollection(() -> EnumSet.noneOf(service.class)));
+		this.ServiceTypes = Utils.rationalizedServices(services);
 	}
 
 	@Override
@@ -126,12 +121,12 @@ public class CostOfEveryThingSuite extends HapiApiSuite {
 	@Override
 	protected List<HapiApiSpec> getSpecsInSuite() {
 		return Stream.of(
-				ofNullable(services.contains(service.CRYPTO) ? canonicalCryptoOps() : null),
-				ofNullable(services.contains(service.CONSENSUS) ? canonicalTopicOps() : null),
-				ofNullable(services.contains(service.TOKEN) ? canonicalTokenOps() : null),
-				ofNullable(services.contains(service.FILE) ? canonicalFileOps() : null),
-				ofNullable(services.contains(service.CONTRACT) ? canonicalContractOps() : null),
-				ofNullable(services.contains(service.SCHEDULED) ? canonicalScheduleOps() : null)
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.CRYPTO) ? canonicalCryptoOps() : null),
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.CONSENSUS) ? canonicalTopicOps() : null),
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.TOKEN) ? canonicalTokenOps() : null),
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.FILE) ? canonicalFileOps() : null),
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.CONTRACT) ? canonicalContractOps() : null),
+				ofNullable(ServiceTypes.contains(Utils.ServiceType.SCHEDULED) ? canonicalScheduleOps() : null)
 		).flatMap(Optional::stream).collect(toList());
 	}
 
@@ -148,7 +143,7 @@ public class CostOfEveryThingSuite extends HapiApiSuite {
 								.balance(10_000_000_000L),
 						fileCreate("contractFile")
 								.payingWith("payer")
-								.path("resources/CreateTrivial.bin")
+								.fromResource("contract/bytecodes/CreateTrivial.bin")
 				)
 				.when(
 						contractCreate("testContract")
@@ -509,18 +504,16 @@ public class CostOfEveryThingSuite extends HapiApiSuite {
 								cryptoTransfer(tinyBarsFromTo("payingSender", "receiver", 1L))
 										.memo("")
 										.fee(ONE_HBAR)
-										.signedBy("payingSender")
 						)
 								.via("canonicalScheduleCreation")
 								.payingWith("payingSender")
-								.adminKey("payingSender")
-								.inheritingScheduledSigs(),
+								.adminKey("payingSender"),
 						getScheduleInfo("canonicalSchedule")
 								.payingWith("payingSender"),
 						scheduleSign("canonicalSchedule")
 								.via("canonicalScheduleSigning")
 								.payingWith("payingSender")
-								.withSignatories("receiver"),
+								.alsoSigningWith("receiver"),
 						scheduleCreate("tbd",
 								cryptoTransfer(tinyBarsFromTo("payingSender", "receiver", 1L))
 										.memo("")
@@ -528,8 +521,7 @@ public class CostOfEveryThingSuite extends HapiApiSuite {
 										.signedBy("payingSender")
 						)
 								.payingWith("payingSender")
-								.adminKey("payingSender")
-								.inheritingScheduledSigs(),
+								.adminKey("payingSender"),
 						scheduleDelete("tbd")
 								.via("canonicalScheduleDeletion")
 								.payingWith("payingSender")

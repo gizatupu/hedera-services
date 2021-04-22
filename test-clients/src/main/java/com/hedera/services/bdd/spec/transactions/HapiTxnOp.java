@@ -136,11 +136,6 @@ public abstract class HapiTxnOp<T extends HapiTxnOp<T>> extends HapiSpecOperatio
 		return finalizedTxn(spec, opBodyDef(spec));
 	}
 
-	public Transaction signedTxnFor(HapiApiSpec spec, byte[] nonce) throws Throwable {
-		this.nonce = nonce;
-		return finalizedTxn(spec, opBodyDef(spec));
-	}
-
 	@Override
 	protected boolean submitOp(HapiApiSpec spec) throws Throwable {
 		stats = new TxnObs(type());
@@ -626,6 +621,16 @@ public abstract class HapiTxnOp<T extends HapiTxnOp<T>> extends HapiSpecOperatio
 
 	public T logging() {
 		loggingOff = false;
+		return self();
+	}
+
+	public T noYahcliLogging() {
+		yahcliLogger = false;
+		return self();
+	}
+
+	public T yahcliLogging() {
+		yahcliLogger = true;
 		return self();
 	}
 

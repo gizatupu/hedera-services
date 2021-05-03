@@ -235,7 +235,7 @@ public class AccountAutoRenewalSuite extends HapiApiSuite {
 	 * It is also the only field that can be changed while expired (during the grace period).
 	 */
 	private HapiApiSpec updateExpiration() {
-		String autoRenewAccount = "autoRenewAccount";
+		String testAccount = "testAccount";
 		int autoRenewSecs = 10;
 		int gracePeriod = 120;
 		long initialExpirationTime = Instant.now().getEpochSecond() + autoRenewSecs;
@@ -249,24 +249,24 @@ public class AccountAutoRenewalSuite extends HapiApiSuite {
 										"autorenew.numberOfEntitiesToScan", "100",
 										"autorenew.maxNumberOfEntitiesToRenewOrDelete", "2"))
 								.erasingProps(Set.of("minimumAutoRenewDuration")),
-						cryptoCreate(autoRenewAccount).autoRenewSecs(autoRenewSecs).balance(0L),
+						cryptoCreate(testAccount).autoRenewSecs(autoRenewSecs).balance(0L),
 						cryptoCreate("payer").balance(ONE_HUNDRED_HBARS)
 				)
 				.when(
-						sleepFor(15 * 1000), // autoRenewAccount would have been expired by now
-						// handle transaction to trigger cleanup and autoRenewAccount will be in grace period
+						sleepFor(15 * 1000), // testAccount would have been expired by now
+						// handle transaction to trigger cleanup and testAccount will be in grace period
 						cryptoTransfer(tinyBarsFromTo(GENESIS, NODE, 1L)).via("triggeringTransaction1"),
-						getAccountBalance(autoRenewAccount).logged(),
-						// when in grace period we can not update anything on autoRenewAccount except for expiration time
-						cryptoUpdate(autoRenewAccount)
+						getAccountBalance(testAccount).logged(),
+						// when in grace period we can not update anything on testAccount except for expiration time
+						cryptoUpdate(testAccount)
 								.entityMemo("dont"),
-						// anyone can extend the expiration time on autoRenewAccount
-						contractUpdate(autoRenewAccount)
+						// anyone can extend the expiration time on testAccount
+						contractUpdate(testAccount)
 								.newExpirySecs(autoRenewSecs)
 								.payingWith("payer")
 				)
 				.then(
-						getAccountInfo(autoRenewAccount).has(
+						getAccountInfo(testAccount).has(
 								accountWith().expiry(newExpirationTime, 5L)
 						).logged(),
 						getAccountInfo("payer").has(

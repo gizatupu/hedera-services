@@ -26,6 +26,7 @@ import com.hedera.services.bdd.spec.assertions.ErroringAsserts;
 import com.hedera.services.bdd.spec.assertions.ErroringAssertsProvider;
 import com.hedera.services.bdd.spec.assertions.TransactionRecordAsserts;
 import com.hedera.services.bdd.spec.queries.HapiQueryOp;
+import com.hedera.services.bdd.spec.queries.crypto.HapiGetAccountBalance;
 import com.hedera.services.bdd.spec.transactions.TxnUtils;
 import com.hedera.services.legacy.proto.utils.CommonUtils;
 import com.hederahashgraph.api.proto.java.AccountID;
@@ -86,6 +87,7 @@ public class HapiGetTxnRecord extends HapiQueryOp<HapiGetTxnRecord> {
 	Optional<Map<AccountID, Long>> expectedDebits = Optional.empty();
 	Optional<Consumer<Map<AccountID, Long>>> debitsConsumer = Optional.empty();
 	private Optional<ErroringAssertsProvider<List<TransactionRecord>>> duplicateExpectations = Optional.empty();
+	private Optional<Consumer<ResponseCodeEnum>> statusConsumer = Optional.empty();
 
 	public HapiGetTxnRecord(String txn) {
 		this.txn = txn;
@@ -198,6 +200,11 @@ public class HapiGetTxnRecord extends HapiQueryOp<HapiGetTxnRecord> {
 		return this;
 	}
 
+	public HapiGetTxnRecord exposingStatusTo(Consumer<ResponseCodeEnum> consumer) {
+		statusConsumer = Optional.of(consumer);
+		return this;
+	}
+
 	public TransactionRecord getResponseRecord() {
 		return response.getTransactionGetRecord().getTransactionRecord();
 	}
@@ -294,11 +301,17 @@ public class HapiGetTxnRecord extends HapiQueryOp<HapiGetTxnRecord> {
 			} else {
 				var fee = record.getTransactionFee();
 				var rates = spec.ratesProvider();
-				var priceInUsd = sdec(rates.toUsdWithActiveRates(fee), 4);
-				log.info("Record (charged ${}): {}", priceInUsd,  record);
+				try {
+					var priceInUsd = sdec(rates.toUsdWithActiveRates(fee), 4);
+					log.info("Record (charged ${}): {}", priceInUsd, record);
+				} catch (Exception ignore) {
+					log.info("Is fixed fee being used? No exchange rates are available, can't express as USD.");
+				}
 			}
 		}
-		if (response.getTransactionGetRecord().getHeader().getNodeTransactionPrecheckCode() == OK) {
+		var status = response.getTransactionGetRecord().getHeader().getNodeTransactionPrecheckCode();
+		statusConsumer.ifPresent(sc -> sc.accept(status));
+		if (status == OK) {
 			priceConsumer.ifPresent(pc -> pc.accept(record.getTransactionFee()));
 			debitsConsumer.ifPresent(dc -> dc.accept(asDebits(record.getTransferList())));
 		}

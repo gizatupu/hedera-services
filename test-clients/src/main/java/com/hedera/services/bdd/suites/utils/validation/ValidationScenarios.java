@@ -48,6 +48,7 @@ import com.hedera.services.bdd.spec.transactions.TxnVerbs;
 
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.*;
 
+import com.hedera.services.bdd.spec.utilops.CustomSpecAssert;
 import com.hedera.services.bdd.spec.utilops.UtilVerbs;
 
 import static com.hedera.services.bdd.spec.utilops.UtilVerbs.*;
@@ -92,6 +93,7 @@ import com.hederahashgraph.api.proto.java.ContractID;
 import com.hederahashgraph.api.proto.java.FileID;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.KeyList;
+import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
 import com.hederahashgraph.api.proto.java.ServicesConfigurationList;
 import com.hederahashgraph.api.proto.java.Setting;
 import com.hederahashgraph.api.proto.java.TopicID;
@@ -146,6 +148,7 @@ import static com.hedera.services.bdd.suites.utils.validation.ValidationScenario
 import static com.hedera.services.bdd.suites.utils.validation.ValidationScenarios.Scenario.FILE;
 import static com.hedera.services.bdd.suites.utils.validation.ValidationScenarios.Scenario.VERSIONS;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_SIGNATURE;
+import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.UNKNOWN;
 import static java.nio.file.Files.readString;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -156,6 +159,8 @@ public class ValidationScenarios extends HapiApiSuite {
 	private static final String DEFAULT_CONFIG_LOC = "config.yml";
 	private static final long TINYBARS_PER_HBAR = 100_000_000L;
 	private static final long FEE_TO_OFFER = 50 * ONE_HBAR;
+	private static final int NUM_QUERY_RETRIES = 30;
+	private static final long QUERY_RETRY_WAIT_MS = 500L;
 
 	enum Scenario {
 		CRYPTO, FILE, CONTRACT, CONSENSUS,
@@ -576,7 +581,6 @@ public class ValidationScenarios extends HapiApiSuite {
 					).when().then(
 							IntStream.range(0, numNodes).mapToObj(i ->
 									cryptoTransfer(tinyBarsFromTo(DEFAULT_PAYER, FUNDING, 1L))
-											.hasAnyStatusAtAll()
 											.payingWith(SCENARIO_PAYER_NAME)
 											.setNode(String.format("0.0.%d",
 													targetNetwork().getNodes().get(i).getAccount()))
@@ -824,12 +828,6 @@ public class ValidationScenarios extends HapiApiSuite {
 				scenarios.setVersions(new VersionInfoScenario());
 			}
 			var versions = scenarios.getVersions();
-			int[] hapiProto = Arrays.stream(versions.getHapiProtoSemVer().split("[.]"))
-					.mapToInt(Integer::parseInt)
-					.toArray();
-			int[] services = Arrays.stream(versions.getServicesSemVer().split("[.]"))
-					.mapToInt(Integer::parseInt)
-					.toArray();
 			return customHapiSpec("VersionsScenario")
 					.withProperties(Map.of(
 							"nodes", nodes(),
@@ -888,26 +886,64 @@ public class ValidationScenarios extends HapiApiSuite {
 									pemForAccount(receiverOrNegativeOne(crypto).getAsLong()),
 									receiverOrNegativeOne(crypto),
 									crypto::setReceiver),
+							balanceSnapshot("senderBefore", SENDER_NAME)
+									.withRetries(NUM_QUERY_RETRIES, QUERY_RETRY_WAIT_MS),
 							balanceSnapshot("receiverBefore", RECEIVER_NAME)
+									.withRetries(NUM_QUERY_RETRIES, QUERY_RETRY_WAIT_MS)
 					).when(flattened(
 							cryptoTransfer(tinyBarsFromTo(SENDER_NAME, RECEIVER_NAME, 1L))
 									.payingWith(SCENARIO_PAYER_NAME)
 									.setNodeFrom(ValidationScenarios::nextNode)
 									.via("transferTxn"),
 							withOpContext((spec, opLog) -> {
-								var lookup = getTxnRecord("transferTxn")
-										.payingWith(SCENARIO_PAYER_NAME)
-										.setNodeFrom(ValidationScenarios::nextNode)
-										.logged();
-								allRunFor(spec, lookup);
-								var record = lookup.getResponseRecord();
-								transferFee.set(record.getTransactionFee());
+								AtomicReference<ResponseCodeEnum> statusConsumer = new AtomicReference<>(UNKNOWN);
+								int maxAttempts = 1 + NUM_QUERY_RETRIES;
+								while (maxAttempts-- > 0) {
+									try {
+										var lookup = getTxnRecord("transferTxn")
+												.payingWith(SCENARIO_PAYER_NAME)
+												.setNodeFrom(ValidationScenarios::nextNode)
+												.logged();
+										allRunFor(spec, lookup);
+										var record = lookup.getResponseRecord();
+										transferFee.set(record.getTransactionFee());
+										break;
+									} catch (Throwable maybeRetryable) {
+										if (maxAttempts > 0) {
+											opLog.info("Got {} looking up donation record, retrying after {}ms",
+													statusConsumer.get(),
+													QUERY_RETRY_WAIT_MS);
+										} else {
+											throw maybeRetryable;
+										}
+									}
+								}
 							}),
 							novelAccountIfDesired(transferFee)
 					)).then(
-							getAccountBalance(RECEIVER_NAME)
-									.setNodeFrom(ValidationScenarios::nextNode)
-									.hasTinyBars(changeFromSnapshot("receiverBefore", expectedDelta))
+							withOpContext((spec, opLog) -> {
+								AtomicReference<ResponseCodeEnum> statusConsumer = new AtomicReference<>(UNKNOWN);
+								int maxAttempts = 1 + NUM_QUERY_RETRIES;
+								while (maxAttempts-- > 0) {
+									try {
+										var subOp = getAccountBalance(RECEIVER_NAME)
+												.setNodeFrom(ValidationScenarios::nextNode)
+												.exposingStatusTo(statusConsumer::set)
+												.hasTinyBars(changeFromSnapshot("receiverBefore", expectedDelta));
+										allRunFor(spec, subOp);
+										break;
+									} catch (Throwable maybeRetryable) {
+										if (maxAttempts > 0) {
+											opLog.info("Got {} fetching balance of '{}', retrying after {}ms",
+													statusConsumer.get(),
+													RECEIVER_NAME,
+													QUERY_RETRY_WAIT_MS);
+										} else {
+											throw maybeRetryable;
+										}
+									}
+								}
+							})
 					);
 		} catch (Exception e) {
 			log.warn("Unable to initialize crypto scenario, skipping it!", e);
@@ -1201,12 +1237,31 @@ public class ValidationScenarios extends HapiApiSuite {
 									.payingWith(SCENARIO_PAYER_NAME)
 									.setNodeFrom(ValidationScenarios::nextNode)
 									.via("donation"),
-							getTxnRecord("donation")
-									.payingWith(SCENARIO_PAYER_NAME)
-									.setNodeFrom(ValidationScenarios::nextNode)
-									.logged()
-									.hasPriority(recordWith().transfers(
-											includingDeduction(contract.getPersistent()::getNum, 1))),
+							withOpContext((spec, opLog) -> {
+								AtomicReference<ResponseCodeEnum> statusConsumer = new AtomicReference<>(UNKNOWN);
+								int maxAttempts = 1 + NUM_QUERY_RETRIES;
+								while (maxAttempts-- > 0) {
+									try {
+										var subOp = getTxnRecord("donation")
+												.payingWith(SCENARIO_PAYER_NAME)
+												.exposingStatusTo(statusConsumer::set)
+												.setNodeFrom(ValidationScenarios::nextNode)
+												.logged()
+												.hasPriority(recordWith().transfers(
+														includingDeduction(contract.getPersistent()::getNum, 1)));
+										allRunFor(spec, subOp);
+										break;
+									} catch (Throwable maybeRetryable) {
+										if (maxAttempts > 0) {
+											opLog.info("Got {} looking up donation record, retrying after {}ms",
+													statusConsumer.get(),
+													QUERY_RETRY_WAIT_MS);
+										} else {
+											throw maybeRetryable;
+										}
+									}
+								}
+							}),
 							novelContractIfDesired(contract)
 					)).then();
 		} catch (Exception e) {
@@ -1386,11 +1441,33 @@ public class ValidationScenarios extends HapiApiSuite {
 									.message("The particular is pounded till it is man."),
 							novelTopicIfDesired()
 					)).then(
-							getTopicInfo(PERSISTENT_TOPIC_NAME)
-									.payingWith(SCENARIO_PAYER_NAME)
-									.setNodeFrom(ValidationScenarios::nextNode)
-									.hasSeqNo(expectedSeqNo::get)
-									.logged()
+							withOpContext((spec, opLog) -> {
+								AtomicReference<ResponseCodeEnum> statusConsumer = new AtomicReference<>(UNKNOWN);
+								int maxAttempts = 1 + NUM_QUERY_RETRIES;
+								while (maxAttempts-- > 0) {
+									try {
+										var subOp = getTopicInfo(PERSISTENT_TOPIC_NAME)
+												.payingWith(SCENARIO_PAYER_NAME)
+												.exposingStatusTo(statusConsumer::set)
+												.setNodeFrom(ValidationScenarios::nextNode)
+												.hasSeqNo(expectedSeqNo::get)
+												.logged();
+										allRunFor(spec, subOp);
+										break;
+									} catch (Throwable maybeRetryable) {
+										if (maxAttempts > 0) {
+											opLog.info("Got {} looking up {} info, retrying after {}ms",
+													statusConsumer.get(),
+													PERSISTENT_TOPIC_NAME,
+													QUERY_RETRY_WAIT_MS);
+										} else {
+											throw maybeRetryable;
+										}
+									}
+								}
+
+							})
+
 					);
 		} catch (Exception e) {
 			log.warn("Unable to initialize consensus scenario, skipping it!", e);

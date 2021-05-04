@@ -23,12 +23,14 @@ package com.hedera.services.bdd.spec.queries.consensus;
 import com.google.common.base.MoreObjects;
 import com.hedera.services.bdd.spec.HapiApiSpec;
 import com.hedera.services.bdd.spec.queries.HapiQueryOp;
+import com.hedera.services.bdd.spec.queries.meta.HapiGetTxnRecord;
 import com.hedera.services.bdd.spec.transactions.TxnUtils;
 import com.hederahashgraph.api.proto.java.ConsensusGetTopicInfoQuery;
 import com.hederahashgraph.api.proto.java.ConsensusTopicInfo;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Query;
 import com.hederahashgraph.api.proto.java.Response;
+import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
 import com.hederahashgraph.api.proto.java.Transaction;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +63,7 @@ public class HapiGetTopicInfo extends HapiQueryOp<HapiGetTopicInfo> {
 	private Optional<String> autoRenewAccount = Optional.empty();
 	private boolean saveRunningHash = false;
 	private Optional<LongConsumer> seqNoInfoObserver = Optional.empty();
+	private Optional<Consumer<ResponseCodeEnum>> statusConsumer = Optional.empty();
 
 	public HapiGetTopicInfo(String topic) {
 		this.topic = topic;
@@ -126,6 +129,11 @@ public class HapiGetTopicInfo extends HapiQueryOp<HapiGetTopicInfo> {
 		return this;
 	}
 
+	public HapiGetTopicInfo exposingStatusTo(Consumer<ResponseCodeEnum> consumer) {
+		statusConsumer = Optional.of(consumer);
+		return this;
+	}
+
 	@Override
 	public HederaFunctionality type() {
 		return HederaFunctionality.ConsensusGetTopicInfo;
@@ -135,6 +143,8 @@ public class HapiGetTopicInfo extends HapiQueryOp<HapiGetTopicInfo> {
 	protected void submitWith(HapiApiSpec spec, Transaction payment) {
 		Query query = getTopicInfoQuery(spec, payment, false);
 		response = spec.clients().getConsSvcStub(targetNodeFor(spec), useTls).getTopicInfo(query);
+		var status = response.getConsensusGetTopicInfo().getHeader().getNodeTransactionPrecheckCode();
+		statusConsumer.ifPresent(sc -> sc.accept(status));
 		if (verboseLoggingOn) {
 			log.info("Info: " + response.getConsensusGetTopicInfo().getTopicInfo());
 		}

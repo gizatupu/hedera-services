@@ -70,6 +70,7 @@ public class HapiGetAccountBalance extends HapiQueryOp<HapiGetAccountBalance> {
 	Optional<Supplier<String>> entityFn = Optional.empty();
 	Optional<Function<HapiApiSpec, Function<Long, Optional<String>>>> expectedCondition = Optional.empty();
 	Optional<Map<String, LongConsumer>> tokenBalanceObservers = Optional.empty();
+	private Optional<Consumer<ResponseCodeEnum>> statusConsumer = Optional.empty();
 
 	List<Map.Entry<String, String>> expectedTokenBalances = Collections.EMPTY_LIST;
 
@@ -117,6 +118,11 @@ public class HapiGetAccountBalance extends HapiQueryOp<HapiGetAccountBalance> {
 
 	public HapiGetAccountBalance persists(boolean toExport) {
 		exportAccount = toExport;
+		return this;
+	}
+
+	public HapiGetAccountBalance exposingStatusTo(Consumer<ResponseCodeEnum> consumer) {
+		statusConsumer = Optional.of(consumer);
 		return this;
 	}
 
@@ -202,6 +208,7 @@ public class HapiGetAccountBalance extends HapiQueryOp<HapiGetAccountBalance> {
 		Query query = getAccountBalanceQuery(spec, payment, false);
 		response = spec.clients().getCryptoSvcStub(targetNodeFor(spec), useTls).cryptoGetBalance(query);
 		ResponseCodeEnum status = response.getCryptogetAccountBalance().getHeader().getNodeTransactionPrecheckCode();
+		statusConsumer.ifPresent(sc -> sc.accept(status));
 		if (status == ResponseCodeEnum.ACCOUNT_DELETED) {
 			log.info(spec.logPrefix() + entity + " was actually deleted!");
 		} else {

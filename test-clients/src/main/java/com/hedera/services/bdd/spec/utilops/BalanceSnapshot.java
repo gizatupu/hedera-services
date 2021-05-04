@@ -34,6 +34,8 @@ import java.util.function.Function;
 public class BalanceSnapshot extends UtilOp {
 	private static final Logger log = LogManager.getLogger(BalanceSnapshot.class);
 
+	private long retryDelayMs = 0L;
+	private int maxAttempts = 1;
 	private String account;
 	private String snapshot;
 	private Optional<Function<HapiApiSpec, String>> snapshotFn = Optional.empty();
@@ -48,8 +50,15 @@ public class BalanceSnapshot extends UtilOp {
 		this.account = account;
 		this.snapshotFn = Optional.of(fn);
 	}
+
 	public BalanceSnapshot payingWith(String account) {
 		payer = Optional.of(account);
+		return this;
+	}
+
+	public BalanceSnapshot withRetries(int n, long retryDelayMs)	{
+		maxAttempts = n + 1;
+		this.retryDelayMs = retryDelayMs;
 		return this;
 	}
 
@@ -57,14 +66,33 @@ public class BalanceSnapshot extends UtilOp {
 	protected boolean submitOp(HapiApiSpec spec) {
 		snapshot = snapshotFn.map(fn -> fn.apply(spec)).orElse(snapshot);
 
-		HapiGetAccountBalance delegate = QueryVerbs.getAccountBalance(account).logged();
-		payer.ifPresent(delegate::payingWith);
-		Optional<Throwable> error = delegate.execFor(spec);
-		if (error.isPresent()) {
-			log.error("Failed to take balance snapshot for '{}'!", account);
+		Optional<Throwable> error = Optional.empty();
+		HapiGetAccountBalance delegate = null;
+		while (maxAttempts-- > 0) {
+			delegate = QueryVerbs.getAccountBalance(account);
+			payer.ifPresent(delegate::payingWith);
+			error = delegate.execFor(spec);
+			if (error.isPresent()) {
+				log.info("Got {}, will retry balance snapshot for '{}' after {}ms...",
+						delegate.getResponse().getCryptogetAccountBalance().getHeader().getNodeTransactionPrecheckCode(),
+						account,
+						retryDelayMs);
+				delegate = null;
+				try {
+					Thread.sleep(retryDelayMs);
+				} catch (InterruptedException ignore) {
+					/* No-op */
+				}
+			} else {
+				break;
+			}
+		}
+		if (delegate == null) {
+			log.error("Failed to take balance snapshot for '{}'!", account, error.get());
 			return false;
 		}
 		long balance = delegate.getResponse().getCryptogetAccountBalance().getBalance();
+		log.info("Snapshot '{}' of {} balance is {} tinybars", snapshot, account, balance);
 
 		spec.registry().saveBalanceSnapshot(snapshot, balance);
 		return false;

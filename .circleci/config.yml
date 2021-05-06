@@ -1717,7 +1717,7 @@ workflows:
   GCP-Daily-Services-Reconnect-6N-4C:
     triggers:
       - schedule:
-          cron: "04 13 * * *"
+          cron: "11 14 * * *"
           filters:
             branches:
               only:

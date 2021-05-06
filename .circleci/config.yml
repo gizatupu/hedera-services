@@ -1717,7 +1717,7 @@ workflows:
   GCP-Daily-Services-Reconnect-6N-4C:
     triggers:
       - schedule:
-          cron: "46 12 * * *"
+          cron: "04 13 * * *"
           filters:
             branches:
               only:
@@ -2055,7 +2055,7 @@ workflows:
               branches:
                 ignore:
                   - /.*-PERF/
-#                  - 01367-D-reconnect-failure-w-high-TPS
+                  - 01367-D-reconnect-failure-w-high-TPS
             workflow-name: "Continuous-integration"
         - build-platform-and-services:
             context: SonarCloud

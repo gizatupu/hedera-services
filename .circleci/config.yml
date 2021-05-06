@@ -1717,7 +1717,7 @@ workflows:
   GCP-Daily-Services-Reconnect-6N-4C:
     triggers:
       - schedule:
-          cron: "42 5 * * *"
+          cron: "46 12 * * *"
           filters:
             branches:
               only:
@@ -2321,7 +2321,7 @@ jobs:
             cd /swirlds-platform;
             sed -i -e 's/github.com/services-jrs-regression/g' .gitmodules;
             git submodule update --init --recursive --checkout;
-            cd regression; git checkout 01367-D-reconnect-failure-w-high-TPS
+            cd regression; git checkout 01334-D-increase-reconnect-tests-TPS
             cd ..;
             mvn --no-transfer-progress clean install -DskipTests;
 

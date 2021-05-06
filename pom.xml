@@ -107,8 +107,8 @@
       <url>https://repo.maven.apache.org/maven2</url>
     </repository>
     <repository>
-      <id>ossrh-snapshots-1094</id>
-      <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
+      <id>ossrh-snapshots-1096</id>
+      <url>https://oss.sonatype.org/content/repositories/comswirlds-1096</url>
       <layout>default</layout>
       <releases>
         <enabled>false</enabled>
@@ -177,7 +177,7 @@
     <javax-inject.version>1</javax-inject.version>
     <log4j.version>2.13.2</log4j.version>
     <netty.version>4.1.51.Final</netty.version>
-    <swirlds.version>0.9.3-debug.5</swirlds.version>
+    <swirlds.version>0.9.3-debug.6</swirlds.version>
     <!-- Test dependency properties -->
     <hamcrest-all.version>1.3</hamcrest-all.version>
     <junit.version>4.13.1</junit.version>

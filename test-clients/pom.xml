@@ -258,9 +258,9 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <id>snapshot-1094</id>
-      <name>comswirlds-1094</name>
-      <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
+      <id>snapshot-1096</id>
+      <name>comswirlds-1096</name>
+      <url>https://oss.sonatype.org/content/repositories/comswirlds-1096</url>
     </repository>
   </repositories>
 

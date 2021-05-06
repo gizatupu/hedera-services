@@ -1714,6 +1714,31 @@ workflows:
             - attach_workspace:
                 at: /
 
+
+  GCP-Daily-Services-Reconnect-6N-4C:
+    triggers:
+      - schedule:
+          cron: "39 22,23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 * * *"
+          filters:
+            branches:
+              only:
+                - 01367-D-wo-dbg-high-TPS
+    jobs:
+      - build-platform-and-services
+      - jrs-regression:
+          context: Slack
+          regression_path: /swirlds-platform/regression
+          result_path: results/6N_4C/Reconnect
+          config_type: "daily"
+          workflow-name: "GCP-Daily-Services-Reconnect-6N-4C"
+          requires:
+            - build-platform-and-services
+          pre-steps:
+            - install-tools
+            - attach_workspace:
+                at: /
+
+
   GCP-Daily-Services-Global-3NReconnect-15N-1C:
     triggers:
       - schedule:
@@ -2031,6 +2056,7 @@ workflows:
               branches:
                 ignore:
                   - /.*-PERF/
+                  - 01367-D-wo-dbg-high-TPS
             workflow-name: "Continuous-integration"
         - build-platform-and-services:
             context: SonarCloud
@@ -2296,7 +2322,7 @@ jobs:
             cd /swirlds-platform;
             sed -i -e 's/github.com/services-jrs-regression/g' .gitmodules;
             git submodule update --init --recursive --checkout;
-            cd regression;
+            cd regression; git checkout 01367-D-wo-dbg-high-TPS
             cd ..;
             mvn --no-transfer-progress clean install -DskipTests;
 

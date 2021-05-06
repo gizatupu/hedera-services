@@ -25,6 +25,7 @@
     <dependency>
       <groupId>com.swirlds</groupId>
       <artifactId>swirlds-common</artifactId>
+      <version>0.9.3</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

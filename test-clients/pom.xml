@@ -240,12 +240,27 @@
 
   <repositories>
     <repository>
-      <id>com.bintray.jcenter</id>
-      <url>https://jcenter.bintray.com/</url>
-      <name>JCenter</name>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
+      <id>local-repo-for-swirlds-sdk</id>
+      <url>file:${project.basedir}/localSwirldsSDK</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>central</id>
+      <name>bintray</name>
+      <url>https://jcenter.bintray.com</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>snapshot-1094</id>
+      <name>comswirlds-1094</name>
+      <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
     </repository>
   </repositories>
 

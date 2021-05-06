@@ -360,8 +360,15 @@
       </snapshots>
       <id>central</id>
       <name>bintray</name>
-      <!-- <url>https://jcenter.bintray.com</url> -->
-	  <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
+       <url>https://jcenter.bintray.com</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>snapshot-1094</id>
+      <name>comswirlds-1094</name>
+      <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
     </repository>
   </repositories>
   <profiles>

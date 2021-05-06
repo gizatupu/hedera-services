@@ -107,9 +107,10 @@
       <url>https://repo.maven.apache.org/maven2</url>
     </repository>
     <repository>
-      <id>ossrh-snapshots</id>
-<!--      <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+      <id>ossrh-snapshots-1094</id>
+      <!-- <url>https://oss.sonatype.org/content/repositories/snapshots</url> -->
       <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
+      <layout>default</layout>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -117,12 +118,21 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+<!--    <repository>-->
+<!--      <id>ossrh-snapshots</id>-->
+<!--      <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+<!--      <releases>-->
+<!--        <enabled>false</enabled>-->
+<!--      </releases>-->
+<!--      <snapshots>-->
+<!--        <enabled>true</enabled>-->
+<!--      </snapshots>-->
+<!--    </repository>-->
   </repositories>
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
-      <!-- <url>https://oss.sonatype.org/content/repositories/snapshots</url> -->
-      <url>https://oss.sonatype.org/content/repositories/comswirlds-1094</url>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>

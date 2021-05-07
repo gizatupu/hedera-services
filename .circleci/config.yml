@@ -1715,7 +1715,7 @@ workflows:
                 at: /
 
 
-  GCP-Daily-Services-Reconnect-6N-4C:
+  GCP-Services-Reconnect-No-Dbg-6N-4C:
     triggers:
       - schedule:
           cron: "39 22,23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 * * *"
@@ -2744,10 +2744,10 @@ jobs:
         default: true
       slack_results_channel:
         type: string
-        default: "hedera-regression"
+        default: "hedera-regression-test"
       slack_summary_channel:
         type: string
-        default: "hedera-regression-summary"
+        default: "hedera-regression-test"
       workflow-name:
         type: string
         default: ""

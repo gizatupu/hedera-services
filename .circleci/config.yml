@@ -1715,14 +1715,14 @@ workflows:
                 at: /
 
 
-  GCP-Services-Reconnect-No-Dbg-6N-4C:
+  GCP-Services-Reconn-Saved-State-39min-6N-4C:
     triggers:
       - schedule:
-          cron: "39 22,23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 * * *"
+          cron: "55 17,18,19,20 * * *"
           filters:
             branches:
               only:
-                - X-01367-D-wo-dbg-high-TPS
+                - 01367-D-wo-dbg-high-TPS
     jobs:
       - build-platform-and-services
       - jrs-regression:

@@ -1721,7 +1721,7 @@ workflows:
           filters:
             branches:
               only:
-                - 01367-D-reconnect-failure-w-high-TPS
+                - X-01367-D-reconnect-failure-w-high-TPS
     jobs:
       - build-platform-and-services
       - jrs-regression:

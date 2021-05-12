@@ -92,8 +92,6 @@ public class AwareProcessLogic implements ProcessLogic {
 			PlatformTxnAccessor accessor = accessorCache.getIfPresent(platformTxn);
 			if (accessor == null) {
 				accessor = new PlatformTxnAccessor(platformTxn);
-			} else {
-				accessorCache.invalidate(platformTxn);
 			}
 			Instant timestamp = consensusTime;
 			if (accessor.canTriggerTxn()) {

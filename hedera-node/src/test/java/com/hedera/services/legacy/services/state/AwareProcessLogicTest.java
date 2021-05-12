@@ -20,6 +20,7 @@ package com.hedera.services.legacy.services.state;
  * ‍
  */
 
+import com.google.common.cache.Cache;
 import com.google.protobuf.ByteString;
 import com.hedera.services.context.ServicesContext;
 import com.hedera.services.context.TransactionContext;
@@ -114,6 +115,7 @@ class AwareProcessLogicTest {
 		final TxnFeeChargingPolicy policy = mock(TxnFeeChargingPolicy.class);
 		final SystemOpPolicies policies = mock(SystemOpPolicies.class);
 		final TransitionLogicLookup lookup = mock(TransitionLogicLookup.class);
+		final Cache<Transaction, PlatformTxnAccessor> accessorCache = mock(Cache.class);
 		hfs = mock(HederaFs.class);
 
 		given(histories.get(any())).willReturn(recentHistory);
@@ -152,6 +154,7 @@ class AwareProcessLogicTest {
 		given(ctx.transitionLogic()).willReturn(lookup);
 		given(ctx.hfs()).willReturn(hfs);
 		given(ctx.contracts()).willReturn(contracts);
+		given(ctx.accessorCache()).willReturn(accessorCache);
 
 		given(txnCtx.accessor()).willReturn(txnAccessor);
 		given(txnCtx.submittingNodeAccount()).willReturn(accountID);

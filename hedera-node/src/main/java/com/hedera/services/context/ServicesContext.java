@@ -21,6 +21,8 @@ package com.hedera.services.context;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.hedera.services.ServicesState;
 import com.hedera.services.config.AccountNumbers;
 import com.hedera.services.config.EntityNumbers;
@@ -308,6 +310,7 @@ import com.hedera.services.utils.EntityIdUtils;
 import com.hedera.services.utils.JvmSystemExits;
 import com.hedera.services.utils.MiscUtils;
 import com.hedera.services.utils.Pause;
+import com.hedera.services.utils.PlatformTxnAccessor;
 import com.hedera.services.utils.SleepingPause;
 import com.hedera.services.utils.SystemExits;
 import com.hederahashgraph.api.proto.java.AccountID;
@@ -323,6 +326,7 @@ import com.swirlds.common.AddressBook;
 import com.swirlds.common.Console;
 import com.swirlds.common.NodeId;
 import com.swirlds.common.Platform;
+import com.swirlds.common.Transaction;
 import com.swirlds.common.crypto.DigestType;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.crypto.ImmutableHash;
@@ -346,6 +350,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -543,6 +548,7 @@ public class ServicesContext {
 	private ValidatingCallbackInterceptor applicationPropertiesReloading;
 	private Supplier<ServicesRepositoryRoot> newPureRepo;
 	private Map<TransactionID, TxnIdRecentHistory> txnHistories;
+	private Cache<Transaction, PlatformTxnAccessor> accessorCache;
 	private AtomicReference<FCMap<MerkleEntityId, MerkleTopic>> queryableTopics;
 	private AtomicReference<FCMap<MerkleEntityId, MerkleToken>> queryableTokens;
 	private AtomicReference<FCMap<MerkleEntityId, MerkleAccount>> queryableAccounts;
@@ -609,6 +615,16 @@ public class ServicesContext {
 			sigFactoryCreator = new SigFactoryCreator();
 		}
 		return sigFactoryCreator;
+	}
+
+	public Cache<Transaction, PlatformTxnAccessor> accessorCache() {
+		if (accessorCache == null) {
+			accessorCache = CacheBuilder
+					.newBuilder()
+					.expireAfterWrite(10, TimeUnit.SECONDS)
+					.build();
+		}
+		return accessorCache;
 	}
 
 	public HapiOpCounters opCounters() {

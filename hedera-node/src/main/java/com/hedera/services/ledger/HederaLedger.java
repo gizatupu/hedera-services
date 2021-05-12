@@ -509,9 +509,11 @@ public class HederaLedger {
 
 		int numPurged = numBefore - records.size();
 		LedgerTxnEvictionStats.INSTANCE.recordPurgedFromAnAccount(numPurged);
-		log.debug("Purged {} records from account {}",
-				() -> numPurged,
-				() -> readableId(id));
+		if (numPurged > 0) {
+			log.warn("Purged {} records from account {}",
+					() -> numPurged,
+					() -> readableId(id));
+		}
 
 		return newEarliestExpiry;
 	}

@@ -88,7 +88,13 @@ public class AwareProcessLogic implements ProcessLogic {
 	@Override
 	public void incorporateConsensusTxn(Transaction platformTxn, Instant consensusTime, long submittingMember) {
 		try {
-			PlatformTxnAccessor accessor = new PlatformTxnAccessor(platformTxn);
+			final var accessorCache = ctx.accessorCache();
+			PlatformTxnAccessor accessor = accessorCache.getIfPresent(platformTxn);
+			if (accessor == null) {
+				accessor = new PlatformTxnAccessor(platformTxn);
+			} else {
+				accessorCache.invalidate(platformTxn);
+			}
 			Instant timestamp = consensusTime;
 			if (accessor.canTriggerTxn()) {
 				timestamp = timestamp.minusNanos(1);

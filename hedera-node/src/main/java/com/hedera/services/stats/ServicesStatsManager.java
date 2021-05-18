@@ -66,6 +66,7 @@ public class ServicesStatsManager {
 		speedometers.registerWith(platform);
 		opSpeedometers.registerWith(platform);
 
+		// enable FCQueue and FCMap stats from platform
 		FCQueueStatistics.register(platform);
 		FCMapStatistics.register(platform);
 

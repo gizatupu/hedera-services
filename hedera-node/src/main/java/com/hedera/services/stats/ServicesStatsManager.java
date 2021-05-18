@@ -23,6 +23,8 @@ package com.hedera.services.stats;
 import com.hedera.services.context.properties.NodeLocalProperties;
 import com.hedera.services.utils.Pause;
 import com.swirlds.common.Platform;
+import com.swirlds.fcmap.FCMapStatistics;
+import com.swirlds.fcqueue.FCQueueStatistics;
 
 import java.util.function.Function;
 
@@ -63,6 +65,9 @@ public class ServicesStatsManager {
 		runningAvgs.registerWith(platform);
 		speedometers.registerWith(platform);
 		opSpeedometers.registerWith(platform);
+
+		FCQueueStatistics.register(platform);
+		FCMapStatistics.register(platform);
 
 		platform.appStatInit();
 

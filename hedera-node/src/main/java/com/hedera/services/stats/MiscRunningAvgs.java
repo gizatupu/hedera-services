@@ -106,7 +106,7 @@ public class MiscRunningAvgs {
 		hashQueueSizeRecordStream.recordValue(num);
 	}
 
-	public void recordFCOperationsInHandleSecs(double time) { secTransFcOperationsInHandle.recordValue(time); }
+	public void recordFCOperationsInHandleMicroSecs(double time) { secTransFcOperationsInHandle.recordValue(time); }
 
 	static class Names {
 		public static final String ACCOUNT_RETRY_WAIT_MS = "avgAcctRetryWaitMs";

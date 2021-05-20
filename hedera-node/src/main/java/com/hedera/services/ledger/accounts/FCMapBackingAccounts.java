@@ -20,12 +20,15 @@ package com.hedera.services.ledger.accounts;
  * ‍
  */
 
+import com.hedera.services.ServicesState;
 import com.hedera.services.ledger.HederaLedger;
 import com.hedera.services.stats.MiscRunningAvgs;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hedera.services.state.merkle.MerkleEntityId;
 import com.hedera.services.state.merkle.MerkleAccount;
 import com.swirlds.fcmap.FCMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +42,7 @@ import static com.hedera.services.utils.EntityIdUtils.readableId;
 public class FCMapBackingAccounts implements BackingStore<AccountID, MerkleAccount> {
 	Set<AccountID> existingAccounts = new HashSet<>();
 	Map<AccountID, MerkleAccount> cache = new HashMap<>();
+	private static final Logger log = LogManager.getLogger(FCMapBackingAccounts.class);
 
 	private final Supplier<FCMap<MerkleEntityId, MerkleAccount>> delegate;
 	private final MiscRunningAvgs miscRunningAvgs;
@@ -71,8 +75,13 @@ public class FCMapBackingAccounts implements BackingStore<AccountID, MerkleAccou
 	public MerkleAccount getRef(AccountID id) {
 		long startTime = System.nanoTime();
 		MerkleAccount account =  cache.computeIfAbsent(id, ignore -> delegate.get().getForModify(fromAccountId(id)));
-		miscRunningAvgs.recordFCOperationsInHandleSecs((System.nanoTime() - (double)startTime) / 1_000L);
+		miscRunningAvgs.recordFCOperationsInHandleMicroSecs(microsElapsed(startTime));
+		log.info("Micros Elapsed in GFM" + microsElapsed(startTime));
 		return account;
+	}
+
+	private double microsElapsed(long startTime){
+		return (System.nanoTime() - (double)startTime) / 1_000L;
 	}
 
 	@Override

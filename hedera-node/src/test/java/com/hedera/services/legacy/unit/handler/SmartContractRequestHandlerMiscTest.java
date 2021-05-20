@@ -159,7 +159,7 @@ public class SmartContractRequestHandlerMiscTest {
     TransactionalLedger<AccountID, AccountProperty, MerkleAccount> delegate = new TransactionalLedger<>(
             AccountProperty.class,
             () -> new MerkleAccount(),
-            new FCMapBackingAccounts(() -> fcMap),
+            new FCMapBackingAccounts(() -> fcMap, null),
             new ChangeSummaryManager<>());
     ledger = new HederaLedger(
             mock(TokenStore.class),

@@ -1414,7 +1414,7 @@ public class ServicesContext {
 
 	public BackingStore<AccountID, MerkleAccount> backingAccounts() {
 		if (backingAccounts == null) {
-			backingAccounts = new FCMapBackingAccounts(this::accounts);
+			backingAccounts = new FCMapBackingAccounts(this::accounts, runningAvgs);
 		}
 		return backingAccounts;
 	}

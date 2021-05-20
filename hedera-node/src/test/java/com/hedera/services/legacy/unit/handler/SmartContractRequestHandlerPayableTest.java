@@ -81,7 +81,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -137,7 +136,7 @@ public class SmartContractRequestHandlerPayableTest {
 
   private ServicesRepositoryRoot getLocalRepositoryInstance() {
     DbSource<byte[]> repDBFile = StorageSourceFactory.from(storageMap);
-    backingAccounts = new FCMapBackingAccounts(() -> fcMap);
+    backingAccounts = new FCMapBackingAccounts(() -> fcMap, null);
     TransactionalLedger<AccountID, AccountProperty, MerkleAccount> delegate = new TransactionalLedger<>(
             AccountProperty.class,
             () -> new MerkleAccount(),

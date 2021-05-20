@@ -21,6 +21,7 @@ package com.hedera.services.ledger.accounts;
  */
 
 import com.hedera.services.ledger.HederaLedger;
+import com.hedera.services.stats.MiscRunningAvgs;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hedera.services.state.merkle.MerkleEntityId;
 import com.hedera.services.state.merkle.MerkleAccount;
@@ -40,9 +41,12 @@ public class FCMapBackingAccounts implements BackingStore<AccountID, MerkleAccou
 	Map<AccountID, MerkleAccount> cache = new HashMap<>();
 
 	private final Supplier<FCMap<MerkleEntityId, MerkleAccount>> delegate;
+	private final MiscRunningAvgs miscRunningAvgs;
 
-	public FCMapBackingAccounts(Supplier<FCMap<MerkleEntityId, MerkleAccount>> delegate) {
+	public FCMapBackingAccounts(Supplier<FCMap<MerkleEntityId, MerkleAccount>> delegate,
+			MiscRunningAvgs runningAvgs) {
 		this.delegate = delegate;
+		this.miscRunningAvgs = runningAvgs;
 		rebuildFromSources();
 	}
 
@@ -65,7 +69,10 @@ public class FCMapBackingAccounts implements BackingStore<AccountID, MerkleAccou
 
 	@Override
 	public MerkleAccount getRef(AccountID id) {
-		return cache.computeIfAbsent(id, ignore -> delegate.get().getForModify(fromAccountId(id)));
+		long startTime = System.nanoTime();
+		MerkleAccount account =  cache.computeIfAbsent(id, ignore -> delegate.get().getForModify(fromAccountId(id)));
+		miscRunningAvgs.recordFCOperationsInHandleSecs((System.nanoTime() - (double)startTime) / 1_000L);
+		return account;
 	}
 
 	@Override

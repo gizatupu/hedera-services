@@ -60,7 +60,7 @@ class FCMapBackingAccountsTest {
 		map = mock(FCMap.class);
 		given(map.keySet()).willReturn(Collections.emptySet());
 
-		subject = new FCMapBackingAccounts(() -> map);
+		subject = new FCMapBackingAccounts(() -> map, null);
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class FCMapBackingAccountsTest {
 		map.put(aKey, aValue);
 		map.put(bKey, bValue);
 		// and:
-		subject = new FCMapBackingAccounts(() -> map);
+		subject = new FCMapBackingAccounts(() -> map, null);
 
 		// then:
 		assertTrue(subject.existingAccounts.contains(a));
@@ -84,7 +84,7 @@ class FCMapBackingAccountsTest {
 		map.put(aKey, aValue);
 		map.put(bKey, bValue);
 		// and:
-		subject = new FCMapBackingAccounts(() -> map);
+		subject = new FCMapBackingAccounts(() -> map, null);
 
 		// when:
 		map.clear();

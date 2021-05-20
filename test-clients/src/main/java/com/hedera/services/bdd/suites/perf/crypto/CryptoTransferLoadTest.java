@@ -96,7 +96,7 @@ public class CryptoTransferLoadTest extends LoadTest {
 
 			return new HapiSpecOperation[] { cryptoTransfer(
 					tinyBarsFromTo(sender, receiver , 1L))
-					.noLogging()
+					.logging()
 					.payingWith(sender)
 					.signedBy(GENESIS)
 					.suppressStats(true)

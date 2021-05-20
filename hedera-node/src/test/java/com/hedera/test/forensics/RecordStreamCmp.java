@@ -574,7 +574,7 @@ public class RecordStreamCmp {
 	public void seeWhatHappens() throws InterruptedException {
 		final FCMap<MerkleEntityId, MerkleAccount> accounts =
 				new FCMap<>();
-		final FCMapBackingAccounts backingAccounts = new FCMapBackingAccounts(() -> accounts);
+		final FCMapBackingAccounts backingAccounts = new FCMapBackingAccounts(() -> accounts, null);
 
 		final AccountID txnPayer = suspect;
 		final AccountID queryPayerOne = IdUtils.asAccount("0.0.23538");

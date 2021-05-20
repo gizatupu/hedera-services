@@ -33,6 +33,7 @@ public class MiscRunningAvgs {
 
 	StatsRunningAverage writeQueueSizeRecordStream;
 	StatsRunningAverage hashQueueSizeRecordStream;
+	StatsRunningAverage secTransFcOperationsInHandle;
 
 	public MiscRunningAvgs(RunningAvgFactory runningAvg, NodeLocalProperties properties) {
 		this.runningAvg = runningAvg;
@@ -45,6 +46,7 @@ public class MiscRunningAvgs {
 
 		writeQueueSizeRecordStream = new StatsRunningAverage(halfLife);
 		hashQueueSizeRecordStream = new StatsRunningAverage(halfLife);
+		secTransFcOperationsInHandle = new StatsRunningAverage(halfLife);
 	}
 
 	public void registerWith(Platform platform) {
@@ -75,6 +77,13 @@ public class MiscRunningAvgs {
 						hashQueueSizeRecordStream
 				)
 		);
+		platform.addAppStatEntry(
+				runningAvg.from(
+						Names.FC_OPERATIONS_TIME_SEC,
+						Descriptions.FC_OPERATIONS_TIME_SEC,
+						secTransFcOperationsInHandle
+				)
+		);
 	}
 
 	public void recordAccountLookupRetries(int num) {
@@ -97,6 +106,8 @@ public class MiscRunningAvgs {
 		hashQueueSizeRecordStream.recordValue(num);
 	}
 
+	public void recordFCOperationsInHandleSecs(double time) { secTransFcOperationsInHandle.recordValue(time); }
+
 	static class Names {
 		public static final String ACCOUNT_RETRY_WAIT_MS = "avgAcctRetryWaitMs";
 		public static final String ACCOUNT_LOOKUP_RETRIES = "avgAcctLookupRetryAttempts";
@@ -104,6 +115,7 @@ public class MiscRunningAvgs {
 
 		public static final String WRITE_QUEUE_SIZE_RECORD_STREAM = "writeQueueSizeRecordStream";
 		public static final String HASH_QUEUE_SIZE_RECORD_STREAM = "hashQueueSizeRecordStream";
+		public static final String FC_OPERATIONS_TIME_SEC = "secTransFcOperationsInHandle";
 	}
 
 	static class Descriptions {
@@ -117,5 +129,6 @@ public class MiscRunningAvgs {
 		public static final String WRITE_QUEUE_SIZE_RECORD_STREAM =
 				"size of the queue from which we take records and write to RecordStream file";
 		public static final String HASH_QUEUE_SIZE_RECORD_STREAM = "size of working queue for calculating hash and runningHash";
+		public static final String FC_OPERATIONS_TIME_SEC = "average time in seconds taken by getForModify FC operations in handle";
 	}
 }

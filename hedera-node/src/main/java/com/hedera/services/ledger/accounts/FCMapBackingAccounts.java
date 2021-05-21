@@ -75,7 +75,7 @@ public class FCMapBackingAccounts implements BackingStore<AccountID, MerkleAccou
 	public MerkleAccount getRef(AccountID id) {
 		long startTime = System.nanoTime();
 		MerkleAccount account =  cache.computeIfAbsent(id, ignore -> delegate.get().getForModify(fromAccountId(id)));
-		if(id.getAccountNum() > 1000){
+		if(id.getAccountNum() > 1000L){
 			miscRunningAvgs.recordFCOperationsInHandleMicroSecs(microsElapsed(startTime));
 			log.info("Micros Elapsed in GFM" + microsElapsed(startTime));
 		}

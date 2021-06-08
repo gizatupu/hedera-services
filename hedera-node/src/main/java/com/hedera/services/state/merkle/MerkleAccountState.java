@@ -44,7 +44,7 @@ public class MerkleAccountState extends AbstractMerkleLeaf {
 	static final int MAX_CONCEIVABLE_TOKEN_BALANCES_SIZE = 4_096;
 
 	static final int RELEASE_070_VERSION = 1;
-	static final int RELEASE_08x_VERSION = 2;
+	static final int RELEASE_08X_VERSION = 2;
 	static final int RELEASE_090_ALPHA_VERSION = 3;
 	static final int RELEASE_090_VERSION = 4;
 	static final int MERKLE_VERSION = RELEASE_090_VERSION;
@@ -115,7 +115,7 @@ public class MerkleAccountState extends AbstractMerkleLeaf {
 		smartContract = in.readBoolean();
 		receiverSigRequired = in.readBoolean();
 		proxy = serdes.readNullableSerializable(in);
-		if (version == RELEASE_08x_VERSION) {
+		if (version == RELEASE_08X_VERSION) {
 			/* Releases v0.8.0 and v0.8.1 included token information in the account state. */
 			in.readLongArray(MAX_CONCEIVABLE_TOKEN_BALANCES_SIZE);
 		}

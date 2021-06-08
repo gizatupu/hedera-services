@@ -39,7 +39,7 @@ public class PureFCMapBackingAccounts implements BackingStore<AccountID, MerkleA
 	}
 
 	@Override
-	public void flushMutableRefs() { }
+	public void flushMutableRefs() { /* No-op implementation */ }
 
 	@Override
 	public MerkleAccount getRef(AccountID id) {

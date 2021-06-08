@@ -29,23 +29,23 @@ import java.util.HashMap;
  */
 public enum JObjectType {
 
-  JKey, JKeyList, JThresholdKey, JEd25519Key, JECDSA_384Key, JRSA_3072Key, JContractIDKey,
-  JFileInfo,
-  JMemoAdminKey;
+  JKEY, JKEY_LIST, JTHRESHOLD_KEY, JED25519_KEY, JECDSA_384KEY, JRSA_3072KEY, JCONTRACT_ID_KEY,
+  JFILE_INFO,
+  JMEMO_ADMIN_KEY;
 
   private static final HashMap<JObjectType, Long> LOOKUP_TABLE = new HashMap<>();
   private static final HashMap<Long, JObjectType> REV_LOOKUP_TABLE = new HashMap<>();
 
   static {
-    addLookup(JKey, 15503731);
-    addLookup(JKeyList, 15512048);
-    addLookup(JThresholdKey, 15520365);
-    addLookup(JEd25519Key, 15528682);
-    addLookup(JECDSA_384Key, 15536999);
-    addLookup(JRSA_3072Key, 15620169);
-    addLookup(JContractIDKey, 15545316);
-    addLookup(JFileInfo, 15636803);
-    addLookup(JMemoAdminKey, 15661754);
+    addLookup(JKEY, 15503731);
+    addLookup(JKEY_LIST, 15512048);
+    addLookup(JTHRESHOLD_KEY, 15520365);
+    addLookup(JED25519_KEY, 15528682);
+    addLookup(JECDSA_384KEY, 15536999);
+    addLookup(JRSA_3072KEY, 15620169);
+    addLookup(JCONTRACT_ID_KEY, 15545316);
+    addLookup(JFILE_INFO, 15636803);
+    addLookup(JMEMO_ADMIN_KEY, 15661754);
   }
 
   private static void addLookup(final JObjectType type, final long value) {

@@ -37,22 +37,23 @@ import java.util.Optional;
 import static java.lang.System.arraycopy;
 
 public class EntityIdUtils {
+	private static final String ID_FORMAT = "%d.%d.%d";
 	public static String readableId(Object o) {
 		if (o instanceof AccountID) {
 			AccountID id = (AccountID) o;
-			return String.format("%d.%d.%d", id.getShardNum(), id.getRealmNum(), id.getAccountNum());
+			return String.format(ID_FORMAT, id.getShardNum(), id.getRealmNum(), id.getAccountNum());
 		} else if (o instanceof FileID) {
 			FileID id = (FileID) o;
-			return String.format("%d.%d.%d", id.getShardNum(), id.getRealmNum(), id.getFileNum());
+			return String.format(ID_FORMAT, id.getShardNum(), id.getRealmNum(), id.getFileNum());
 		} else if (o instanceof TopicID) {
 			TopicID id = (TopicID) o;
-			return String.format("%d.%d.%d", id.getShardNum(), id.getRealmNum(), id.getTopicNum());
+			return String.format(ID_FORMAT, id.getShardNum(), id.getRealmNum(), id.getTopicNum());
 		} else if (o instanceof TokenID) {
 			TokenID id = (TokenID) o;
-			return String.format("%d.%d.%d", id.getShardNum(), id.getRealmNum(), id.getTokenNum());
+			return String.format(ID_FORMAT, id.getShardNum(), id.getRealmNum(), id.getTokenNum());
 		} else if (o instanceof ScheduleID) {
 			ScheduleID id = (ScheduleID) o;
-			return String.format("%d.%d.%d", id.getShardNum(), id.getRealmNum(), id.getScheduleNum());
+			return String.format(ID_FORMAT, id.getShardNum(), id.getRealmNum(), id.getScheduleNum());
 		} else {
 			return String.valueOf(o);
 		}
@@ -176,7 +177,7 @@ public class EntityIdUtils {
 
 	public static String asLiteralString(AccountID id) {
 		return String.format(
-				"%d.%d.%d",
+				ID_FORMAT,
 				id.getShardNum(),
 				id.getRealmNum(),
 				id.getAccountNum());
@@ -184,7 +185,7 @@ public class EntityIdUtils {
 
 	public static String asLiteralString(FileID id) {
 		return String.format(
-				"%d.%d.%d",
+				ID_FORMAT,
 				id.getShardNum(),
 				id.getRealmNum(),
 				id.getFileNum());

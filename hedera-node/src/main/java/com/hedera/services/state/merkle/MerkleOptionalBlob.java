@@ -106,8 +106,7 @@ public class MerkleOptionalBlob extends AbstractMerkleLeaf implements FCMValue, 
 	 * Intentionally a no-op method
 	 */
 	@Override
-	public void invalidateHash() {
-	}
+	public void invalidateHash() { /* Intentionally a no-op method */ }
 
 	@Override
 	public void serialize(SerializableDataOutputStream out) throws IOException {

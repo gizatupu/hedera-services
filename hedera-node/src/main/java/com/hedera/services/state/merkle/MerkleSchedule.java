@@ -86,8 +86,7 @@ public class MerkleSchedule extends AbstractMerkleLeaf implements FCMValue {
 	private Set<ByteString> notary = ConcurrentHashMap.newKeySet();
 	private List<byte[]> signatories = new ArrayList<>();
 
-	public MerkleSchedule() {
-	}
+	public MerkleSchedule() { /* Default constructor */ }
 
 	public static MerkleSchedule from(byte[] bodyBytes, long consensusExpiry) {
 		var to = new MerkleSchedule();

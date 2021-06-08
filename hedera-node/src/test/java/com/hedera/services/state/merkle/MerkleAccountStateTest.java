@@ -172,7 +172,7 @@ class MerkleAccountStateTest {
 		given(serdes.readNullableSerializable(in)).willReturn(proxy);
 
 		// when:
-		newSubject.deserialize(in, MerkleAccountState.RELEASE_08x_VERSION);
+		newSubject.deserialize(in, MerkleAccountState.RELEASE_08X_VERSION);
 
 		// then:
 		assertEquals(subject, newSubject);

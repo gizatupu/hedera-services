@@ -29,20 +29,20 @@ public enum NoopRecordsHistorian implements AccountRecordsHistorian {
   NOOP_RECORDS_HISTORIAN;
 
   @Override
-  public void setCreator(EntityCreator creator) { }
+  public void setCreator(EntityCreator creator) { /* No-op Implementation */ }
 
   @Override
-  public void finalizeTransactionRecord() { }
+  public void finalizeTransactionRecord() { /* No-op Implementation */ }
 
   @Override
-  public void saveTransactionRecord() { }
+  public void saveTransactionRecord() { /* No-op Implementation */ }
 
   @Override
-  public void reviewExistingRecords() { }
+  public void reviewExistingRecords() { /* No-op Implementation */ }
 
   @Override
   public Optional<TransactionRecord> lastCreatedRecord() { return Optional.empty(); }
 
   @Override
-  public void noteNewExpirationEvents() { }
+  public void noteNewExpirationEvents() { /* No-op Implementation */ }
 }

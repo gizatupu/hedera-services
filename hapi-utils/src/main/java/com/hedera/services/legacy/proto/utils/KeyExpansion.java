@@ -52,6 +52,7 @@ public class KeyExpansion {
   private static final Logger log = LogManager.getLogger(KeyExpansion.class);
   private static int KEY_EXPANSION_DEPTH = 15; // recursion level for expansion
   public static boolean USE_HEX_ENCODED_KEY = false;
+  private static String DEPTH = "depth=";
 
   /**
    * Generates a KeyList key from a list of keys.
@@ -112,7 +113,7 @@ public class KeyExpansion {
 
     if (!(key.hasThresholdKey() || key.hasKeyList())) {
       Signature result = signBasic(key, pubKey2privKeyMap, message);
-      log.debug("depth=" + depth + "; signBasic: result=" + result + "; key=" + key);
+      log.debug(DEPTH + depth + "; signBasic: result=" + result + "; key=" + key);
       return result;
     } else if (key.hasThresholdKey()) {
       List<Key> tKeys = key.getThresholdKey().getKeys().getKeysList();
@@ -134,7 +135,7 @@ public class KeyExpansion {
           .setThresholdSignature(ThresholdSignature.newBuilder()
               .setSigs(SignatureList.newBuilder().addAllSigs(signatures).build())
               .build()).build();
-      log.debug("depth=" + depth + "; sign ThresholdKey: result=" + result + "; threshold=" + thd);
+      log.debug(DEPTH + depth + "; sign ThresholdKey: result=" + result + "; threshold=" + thd);
       return (result);
     } else {
       List<Key> tKeys = key.getKeyList().getKeysList();
@@ -147,7 +148,7 @@ public class KeyExpansion {
 
       Signature result = Signature.newBuilder()
           .setSignatureList(SignatureList.newBuilder().addAllSigs(signatures).build()).build();
-      log.debug("depth=" + depth + "; sign KeyList: result=" + result);
+      log.debug(DEPTH + depth + "; sign KeyList: result=" + result);
       return (result);
     }
   }

@@ -330,6 +330,7 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 
 	@Override
 	public void noMoreTransactions() {
+		/*No-op implementation*/
 	}
 
 	/* --- FastCopyable --- */

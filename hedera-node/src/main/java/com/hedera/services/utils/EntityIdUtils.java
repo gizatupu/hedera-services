@@ -38,6 +38,8 @@ import static java.lang.System.arraycopy;
 
 public class EntityIdUtils {
 	private static final String ID_FORMAT = "%d.%d.%d";
+	private static final String CANNOT_PARSE = "Cannot parse '";
+
 	public static String readableId(Object o) {
 		if (o instanceof AccountID) {
 			AccountID id = (AccountID) o;
@@ -90,16 +92,16 @@ public class EntityIdUtils {
 				triple[i++] = v;
 				v = 0;
 			} else if (c < '0' || c > '9') {
-				throw new NumberFormatException("Cannot parse '" + dotDelimited + "' due to character '" + c + "'");
+				throw new NumberFormatException(CANNOT_PARSE + dotDelimited + "' due to character '" + c + "'");
 			} else {
 				v = 10 * v + (c - '0');
 				if (v < 0) {
-					throw new IllegalArgumentException("Cannot parse '" + dotDelimited + "' due to overflow");
+					throw new IllegalArgumentException(CANNOT_PARSE + dotDelimited + "' due to overflow");
 				}
 			}
 		}
 		if (i < 2) {
-			throw new IllegalArgumentException("Cannot parse '" + dotDelimited + "' due to only " + i + " dots");
+			throw new IllegalArgumentException(CANNOT_PARSE + dotDelimited + "' due to only " + i + " dots");
 		}
 		triple[i] = v;
 		return triple;

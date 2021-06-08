@@ -9,9 +9,9 @@ package com.hedera.services.legacy.core.jproto;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,15 +23,14 @@ package com.hedera.services.legacy.core.jproto;
 import java.util.HashMap;
 
 /**
- *  Mapping of Class name and Object Id
+ * Mapping of Class name and Object Id
  *
  * @author Akshay
  */
 public enum JObjectType {
 
-  JKEY, JKEY_LIST, JTHRESHOLD_KEY, JED25519_KEY, JECDSA_384KEY, JRSA_3072KEY, JCONTRACT_ID_KEY,
-  JFILE_INFO,
-  JMEMO_ADMIN_KEY;
+	JKEY, JKEY_LIST, JTHRESHOLD_KEY, JED25519_KEY, JECDSA_384KEY, JRSA_3072KEY, JCONTRACT_ID_KEY, JFILE_INFO,
+	JMEMO_ADMIN_KEY;
 
   private static final HashMap<JObjectType, Long> LOOKUP_TABLE = new HashMap<>();
   private static final HashMap<Long, JObjectType> REV_LOOKUP_TABLE = new HashMap<>();

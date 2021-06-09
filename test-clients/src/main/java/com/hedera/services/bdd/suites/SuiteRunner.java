@@ -89,6 +89,7 @@ import com.hedera.services.bdd.suites.perf.crypto.CryptoCreatePerfSuite;
 import com.hedera.services.bdd.suites.perf.crypto.CryptoTransferLoadTest;
 import com.hedera.services.bdd.suites.perf.file.FileUpdateLoadTest;
 import com.hedera.services.bdd.suites.perf.file.MixedFileOpsLoadTest;
+import com.hedera.services.bdd.suites.perf.mixedops.CryptoTransferPerfSuiteWOpProvider;
 import com.hedera.services.bdd.suites.perf.mixedops.MixedOpsLoadTest;
 import com.hedera.services.bdd.suites.perf.mixedops.MixedOpsMemoPerfSuite;
 import com.hedera.services.bdd.suites.perf.mixedops.MixedTransferAndSubmitLoadTest;
@@ -391,6 +392,7 @@ public class SuiteRunner {
 		put("MixedOpsLoadTest", aof(new MixedOpsLoadTest()));
 		/* Validate new AddressBook */
 		put("ValidateNewAddressBook", aof(new ValidateNewAddressBook()));
+		put("CryptoTransferPerfSuiteWOpProvider", aof(new CryptoTransferPerfSuiteWOpProvider()));
 	}};
 
 	static boolean runAsync;

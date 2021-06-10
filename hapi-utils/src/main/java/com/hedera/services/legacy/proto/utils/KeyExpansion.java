@@ -28,6 +28,7 @@ import com.hederahashgraph.api.proto.java.SignatureList;
 import com.hederahashgraph.api.proto.java.SignaturePair;
 import com.hederahashgraph.api.proto.java.ThresholdKey;
 import com.hederahashgraph.api.proto.java.ThresholdSignature;
+import com.swirlds.common.CommonUtils;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;
 import net.i2p.crypto.eddsa.KeyPairGenerator;
 import org.apache.commons.codec.DecoderException;
@@ -184,33 +185,28 @@ public class KeyExpansion {
 		if (key.hasContractID()) {
 			rv = genEmptySignature();
 		} else if (!key.getEd25519().isEmpty()) {
-			String pubKeyHex = null;
-			if (USE_HEX_ENCODED_KEY) {
-				pubKeyHex = key.getEd25519().toStringUtf8();
-			} else {
-				byte[] pubKeyBytes = key.getEd25519().toByteArray();
-				pubKeyHex = Hex.encodeHexString(pubKeyBytes);
-			}
-			PrivateKey privKey = pubKey2privKeyMap.get(pubKeyHex);
-			String sigHex = SignatureGenerator.signBytes(msgBytes, privKey);
+			String sigHex = getSignatureFromKey(key.getEd25519(), pubKey2privKeyMap, msgBytes);
 			rv = Signature.newBuilder().setEd25519(ByteString.copyFrom(Hex.decodeHex(sigHex)))
 					.build();
 		} else if (!key.getECDSA384().isEmpty()) {
-			String pubKeyHex = null;
-			if (USE_HEX_ENCODED_KEY) {
-				pubKeyHex = key.getECDSA384().toStringUtf8();
-			} else {
-				byte[] pubKeyBytes = key.getECDSA384().toByteArray();
-				pubKeyHex = Hex.encodeHexString(pubKeyBytes);
-			}
-			PrivateKey privKey = pubKey2privKeyMap.get(pubKeyHex);
-			String sigHex = SignatureGenerator.signBytes(msgBytes, privKey);
-			rv = Signature.newBuilder().setECDSA384(ByteString.copyFrom(Hex.decodeHex(sigHex)))
-					.build();
+			String sigHex = getSignatureFromKey(key.getECDSA384(), pubKey2privKeyMap, msgBytes);
+			rv = Signature.newBuilder().setECDSA384(ByteString.copyFrom(CommonUtils.unhex(sigHex))).build();
 		} else {
 			throw new Exception("Key type not implemented: key=" + key);
 		}
 		return rv;
+	}
+
+	private static String getSignatureFromKey(ByteString pubKey, Map<String, PrivateKey> pubKey2privKeyMap,
+			byte[] msgBytes) throws Exception {
+		String pubKeyHex;
+		if (USE_HEX_ENCODED_KEY) {
+			pubKeyHex = pubKey.toStringUtf8();
+		} else {
+			pubKeyHex = CommonUtils.hex(pubKey.toByteArray());
+		}
+		PrivateKey privKey = pubKey2privKeyMap.get(pubKeyHex);
+		return SignatureGenerator.signBytes(msgBytes, privKey);
 	}
 
 	/**
@@ -355,15 +351,15 @@ public class KeyExpansion {
 		SignaturePair rv;
 		if (!key.getEd25519().isEmpty()) {
 			byte[] pubKeyBytes = key.getEd25519().toByteArray();
-			String pubKeyHex = Hex.encodeHexString(pubKeyBytes);
+			String pubKeyHex = CommonUtils.hex(pubKeyBytes);
 			byte[] prefixBytes = pubKeyBytes;
 			if (prefixLen != -1) {
-				prefixBytes = CommonUtils.copyBytes(0, prefixLen, pubKeyBytes);
+				prefixBytes = com.hedera.services.legacy.proto.utils.CommonUtils.copyBytes(0, prefixLen, pubKeyBytes);
 			}
 			PrivateKey privKey = pubKey2privKeyMap.get(pubKeyHex);
 			String sigHex = SignatureGenerator.signBytes(msgBytes, privKey);
 			rv = SignaturePair.newBuilder().setPubKeyPrefix(ByteString.copyFrom(prefixBytes))
-					.setEd25519(ByteString.copyFrom(Hex.decodeHex(sigHex)))
+					.setEd25519(ByteString.copyFrom(CommonUtils.unhex(sigHex)))
 					.build();
 		} else {
 			throw new Exception("Key type not implemented: key=" + key);

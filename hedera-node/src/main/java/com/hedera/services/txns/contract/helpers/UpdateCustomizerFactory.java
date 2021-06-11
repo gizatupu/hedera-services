@@ -65,6 +65,13 @@ public class UpdateCustomizerFactory {
 				customizer.key(resolution.get());
 			}
 		}
+
+		customizeOtherValues(customizer, updateOp);
+
+		return Pair.of(Optional.of(customizer), OK);
+	}
+
+	private void customizeOtherValues(HederaAccountCustomizer customizer, ContractUpdateTransactionBody updateOp) {
 		if (updateOp.hasProxyAccountID()) {
 			customizer.proxy(fromGrpcAccountId(updateOp.getProxyAccountID()));
 		}
@@ -81,8 +88,6 @@ public class UpdateCustomizerFactory {
 				customizer.memo(updateOp.getMemo());
 			}
 		}
-
-		return Pair.of(Optional.of(customizer), OK);
 	}
 
 	boolean isMutable(MerkleAccount contract) {

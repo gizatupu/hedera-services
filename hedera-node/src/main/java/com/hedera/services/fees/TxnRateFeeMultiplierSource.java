@@ -9,9 +9,9 @@ package com.hedera.services.fees;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,7 +46,7 @@ public class TxnRateFeeMultiplierSource implements FeeMultiplierSource {
 
 	private long multiplier = DEFAULT_MULTIPLIER;
 	private long previousMultiplier = DEFAULT_MULTIPLIER;
-	private long[][] activeTriggerValues = {};
+	private long[][] activeTriggerValues = { };
 	private Instant[] congestionLevelStarts = NO_CONGESTION_STARTS;
 	private CongestionMultipliers activeConfig = NO_CONFIG;
 
@@ -113,24 +113,8 @@ public class TxnRateFeeMultiplierSource implements FeeMultiplierSource {
 		if (ensureConfigUpToDate()) {
 			rebuildState();
 		}
-
-		long x = DEFAULT_MULTIPLIER;
 		long[] multipliers = activeConfig.multipliers();
-		for (int i = 0; i < activeTriggerValues.length; i++) {
-			long used = activeThrottles.get(i).used();
-			for (int j = 0; j < multipliers.length; j++) {
-				if (used >= activeTriggerValues[i][j]) {
-					x = Math.max(x, multipliers[j]);
-				}
-			}
-		}
-		for (int i = 0; i < multipliers.length; i++) {
-			if (x < multipliers[i]) {
-				congestionLevelStarts[i] = null;
-			} else if (congestionLevelStarts[i] == null) {
-				congestionLevelStarts[i] = consensusNow;
-			}
-		}
+		updateCongestionLevelStarts(consensusNow, multipliers);
 
 		/* Use the highest multiplier whose congestion level we have
 		stayed above for at least the minimum number of seconds. */
@@ -151,6 +135,25 @@ public class TxnRateFeeMultiplierSource implements FeeMultiplierSource {
 			logMultiplierChange(previousMultiplier, multiplier);
 		}
 		previousMultiplier = multiplier;
+	}
+
+	private void updateCongestionLevelStarts(Instant consensusNow, long[] multipliers) {
+		long x = DEFAULT_MULTIPLIER;
+		for (int i = 0; i < activeTriggerValues.length; i++) {
+			long used = activeThrottles.get(i).used();
+			for (int j = 0; j < multipliers.length; j++) {
+				if (used >= activeTriggerValues[i][j]) {
+					x = Math.max(x, multipliers[j]);
+				}
+			}
+		}
+		for (int i = 0; i < multipliers.length; i++) {
+			if (x < multipliers[i]) {
+				congestionLevelStarts[i] = null;
+			} else if (congestionLevelStarts[i] == null) {
+				congestionLevelStarts[i] = consensusNow;
+			}
+		}
 	}
 
 	@Override
@@ -196,7 +199,7 @@ public class TxnRateFeeMultiplierSource implements FeeMultiplierSource {
 	}
 
 	void logMultiplierChange(long prev, long cur) {
-		if (prev == DEFAULT_MULTIPLIER)	{
+		if (prev == DEFAULT_MULTIPLIER) {
 			log.info("Congestion pricing beginning w/ " + cur + "x multiplier");
 		} else {
 			if (cur > prev) {

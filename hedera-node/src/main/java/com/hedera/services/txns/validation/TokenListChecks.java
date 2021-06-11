@@ -116,30 +116,25 @@ public class TokenListChecks {
     ) {
         ResponseCodeEnum validity = OK;
 
-        if (hasAdminKey && !ADMIN_KEY_REMOVAL.test(adminKey)) {
-            if ((validity = checkKey(adminKey, INVALID_ADMIN_KEY)) != OK) {
-                return validity;
-            }
+        if (hasAdminKey && !ADMIN_KEY_REMOVAL.test(adminKey) &&
+                ((validity = checkKey(adminKey, INVALID_ADMIN_KEY)) != OK)) {
+            return validity;
         }
-        if (hasKycKey) {
-            if ((validity = checkKey(kycKey, INVALID_KYC_KEY)) != OK) {
-                return validity;
-            }
+
+        if (hasKycKey && ((validity = checkKey(kycKey, INVALID_KYC_KEY)) != OK)) {
+            return validity;
         }
-        if (hasWipeKey) {
-            if ((validity = checkKey(wipeKey, INVALID_WIPE_KEY)) != OK) {
-                return validity;
-            }
+
+        if (hasWipeKey && (validity = checkKey(wipeKey, INVALID_WIPE_KEY)) != OK) {
+            return validity;
         }
-        if (hasSupplyKey) {
-            if ((validity = checkKey(supplyKey, INVALID_SUPPLY_KEY)) != OK) {
-                return validity;
-            }
+
+        if (hasSupplyKey && (validity = checkKey(supplyKey, INVALID_SUPPLY_KEY)) != OK) {
+            return validity;
         }
-        if (hasFreezeKey) {
-            if ((validity = checkKey(freezeKey, INVALID_FREEZE_KEY)) != OK) {
-                return validity;
-            }
+
+        if (hasFreezeKey && ((validity = checkKey(freezeKey, INVALID_FREEZE_KEY)) != OK)) {
+            return validity;
         }
 
         return validity;

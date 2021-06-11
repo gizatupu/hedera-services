@@ -357,6 +357,26 @@ public class HederaLedger {
 			List<TokenTransferList> allTokenTransfers
 	) {
 		var validity = OK;
+
+		validity = validateTokenTransfers(allTokenTransfers);
+
+		if (validity == OK) {
+			validity = checkNetOfTokenTransfers();
+		}
+
+		if (validity == OK && hbarTransfers.getAccountAmountsCount() > 0) {
+			validity = tryTransfers(this, hbarTransfers);
+		}
+
+		if (validity != OK) {
+			dropPendingTokenChanges();
+		}
+
+		return validity;
+	}
+
+	private ResponseCodeEnum validateTokenTransfers(List<TokenTransferList> allTokenTransfers) {
+		var validity = OK;
 		for (TokenTransferList tokenTransfers : allTokenTransfers) {
 			var id = tokenStore.resolve(tokenTransfers.getToken());
 			if (id == MISSING_TOKEN) {
@@ -375,18 +395,6 @@ public class HederaLedger {
 				break;
 			}
 		}
-		if (validity == OK) {
-			validity = checkNetOfTokenTransfers();
-		}
-		if (validity == OK) {
-			if (hbarTransfers.getAccountAmountsCount() > 0) {
-				validity = tryTransfers(this, hbarTransfers);
-			}
-		}
-		if (validity != OK) {
-			dropPendingTokenChanges();
-		}
-
 		return validity;
 	}
 

@@ -368,29 +368,8 @@ public class SolidityExecutor {
 
 				result = program.getResult();
 				gasLeft = toBI(solidityTxn.getGasLimit()).subtract(toBI(program.getResult().getGasUsed()));
-				if (solidityTxn.isContractCreation() && !result.isRevert()) {
-					long durationInSeconds = program.getOwnerRemainingDuration();
-					int codeLengthBytes = getLength(program.getResult().getHReturn());
-					long returnDataGasValue = Program.calculateStorageGasNeeded(
-							codeLengthBytes, durationInSeconds, this.sbh, this.gasPrice);
-					if (gasLeft.compareTo(BigInteger.valueOf(returnDataGasValue)) < 0) {
-						if (!blockchainConfig.getConstants().createEmptyContractOnOOG()) {
-							program.setRuntimeFailure(Program.Exception.notEnoughSpendingGas(
-									"No gas to return just created contract", returnDataGasValue, program));
-							result = program.getResult();
-						}
-						result.setHReturn(EMPTY_BYTE_ARRAY);
-					} else if (getLength(result.getHReturn()) > blockchainConfig.getConstants().getMAX_CONTRACT_SZIE()) {
-						program.setRuntimeFailure(Program.Exception.notEnoughSpendingGas(
-								"Contract size too large: " + getLength(result.getHReturn()), returnDataGasValue,
-								program));
-						result = program.getResult();
-						result.setHReturn(EMPTY_BYTE_ARRAY);
-					} else {
-						gasLeft = gasLeft.subtract(BigInteger.valueOf(returnDataGasValue));
-						trackingRepository.saveCode(solidityTxn.getContractAddress(), result.getHReturn());
-					}
-				}
+
+				updateResultForContractCreation();
 
 				String validationError = config.getBlockchainConfig().getConfigForBlock(block.getNumber())
 						.validateTransactionChanges(NULL_BLOCK_STORE, block, solidityTxn, null);
@@ -428,29 +407,59 @@ public class SolidityExecutor {
 				trackingRepository.commit();
 			}
 		} catch (Throwable e) {
-			if (e instanceof Program.OutOfGasException) {
-				BigInteger gasUpperBound = BigInteger.valueOf(dynamicProperties.maxGas());
-				BigInteger gasProvided = ByteUtil.bytesToBigInteger(solidityTxn.getGasLimit());
-				if (gasUpperBound.compareTo(gasProvided) > 0) {
-					errorCode = INSUFFICIENT_GAS;
-				} else {
-					errorCode = MAX_GAS_LIMIT_EXCEEDED;
-				}
-			} else if (e instanceof Program.InvalidAccountAddressException) {
-				errorCode = ResponseCodeEnum.INVALID_SOLIDITY_ADDRESS;
-			} else if (e instanceof Program.SameOwnerObtainerOnSelfSestructException) {
-				errorCode = ResponseCodeEnum.OBTAINER_SAME_CONTRACT_ID;
-			} else if (e instanceof Program.StaticCallModificationException) {
-				errorCode = ResponseCodeEnum.LOCAL_CALL_MODIFICATION_EXCEPTION;
-			} else if (e instanceof Program.EmptyByteCodeException) {
-				errorCode = CONTRACT_BYTECODE_EMPTY;
-			} else {
-				errorCode = CONTRACT_EXECUTION_EXCEPTION;
-			}
+			updateErrorCodeBasedOnExceptionType(e);
 			// https://github.com/ethereum/cpp-ethereum/blob/develop/libethereum/Executive.cpp#L241
 			rollback();
 			gasLeft = ZERO;
 			setError(e.getMessage());
+		}
+	}
+
+	private void updateResultForContractCreation() {
+		if (solidityTxn.isContractCreation() && !result.isRevert()) {
+			long durationInSeconds = program.getOwnerRemainingDuration();
+			int codeLengthBytes = getLength(program.getResult().getHReturn());
+			long returnDataGasValue = Program.calculateStorageGasNeeded(
+					codeLengthBytes, durationInSeconds, this.sbh, this.gasPrice);
+			if (gasLeft.compareTo(BigInteger.valueOf(returnDataGasValue)) < 0) {
+				if (!blockchainConfig.getConstants().createEmptyContractOnOOG()) {
+					program.setRuntimeFailure(Program.Exception.notEnoughSpendingGas(
+							"No gas to return just created contract", returnDataGasValue, program));
+					result = program.getResult();
+				}
+				result.setHReturn(EMPTY_BYTE_ARRAY);
+			} else if (getLength(result.getHReturn()) > blockchainConfig.getConstants().getMAX_CONTRACT_SZIE()) {
+				program.setRuntimeFailure(Program.Exception.notEnoughSpendingGas(
+						"Contract size too large: " + getLength(result.getHReturn()), returnDataGasValue,
+						program));
+				result = program.getResult();
+				result.setHReturn(EMPTY_BYTE_ARRAY);
+			} else {
+				gasLeft = gasLeft.subtract(BigInteger.valueOf(returnDataGasValue));
+				trackingRepository.saveCode(solidityTxn.getContractAddress(), result.getHReturn());
+			}
+		}
+	}
+
+	private void updateErrorCodeBasedOnExceptionType(Throwable e) {
+		if (e instanceof Program.OutOfGasException) {
+			BigInteger gasUpperBound = BigInteger.valueOf(dynamicProperties.maxGas());
+			BigInteger gasProvided = ByteUtil.bytesToBigInteger(solidityTxn.getGasLimit());
+			if (gasUpperBound.compareTo(gasProvided) > 0) {
+				errorCode = INSUFFICIENT_GAS;
+			} else {
+				errorCode = MAX_GAS_LIMIT_EXCEEDED;
+			}
+		} else if (e instanceof Program.InvalidAccountAddressException) {
+			errorCode = ResponseCodeEnum.INVALID_SOLIDITY_ADDRESS;
+		} else if (e instanceof Program.SameOwnerObtainerOnSelfSestructException) {
+			errorCode = ResponseCodeEnum.OBTAINER_SAME_CONTRACT_ID;
+		} else if (e instanceof Program.StaticCallModificationException) {
+			errorCode = ResponseCodeEnum.LOCAL_CALL_MODIFICATION_EXCEPTION;
+		} else if (e instanceof Program.EmptyByteCodeException) {
+			errorCode = CONTRACT_BYTECODE_EMPTY;
+		} else {
+			errorCode = CONTRACT_EXECUTION_EXCEPTION;
 		}
 	}
 

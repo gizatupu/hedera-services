@@ -296,20 +296,7 @@ public class KeyExpansion {
     if (!(key.hasThresholdKey() || key.hasKeyList())) {
       expandedKeys.add(key);
     } else if (key.hasThresholdKey()) {
-      List<Key> tKeys = key.getThresholdKey().getKeys().getKeysList();
-      int thd = key.getThresholdKey().getThreshold();
-      if (depth <= KEY_EXPANSION_DEPTH) {
-        depth++;
-        int i = 0;
-        for (Key aKey : tKeys) {
-          if(i++ >= thd) // if threshold is reached, stop expanding keys
-		  {
-		    log.debug("Threshold reached, stopping key expansion.");
-            break;
-		  }
-          expandKeyMinimum4Signing(aKey, depth, expandedKeys);
-        }
-      }
+      expandThresholdKey(key, depth, expandedKeys);
     } else {
       List<Key> tKeys = key.getKeyList().getKeysList();
       if (depth <= KEY_EXPANSION_DEPTH) {
@@ -317,6 +304,23 @@ public class KeyExpansion {
         for (Key aKey : tKeys) {
           expandKeyMinimum4Signing(aKey, depth, expandedKeys);
         }
+      }
+    }
+  }
+
+  private static void expandThresholdKey(Key key, int depth, List<Key> expandedKeys) {
+    List<Key> tKeys = key.getThresholdKey().getKeys().getKeysList();
+    int thd = key.getThresholdKey().getThreshold();
+    if (depth <= KEY_EXPANSION_DEPTH) {
+      depth++;
+      int i = 0;
+      for (Key aKey : tKeys) {
+        if(i++ >= thd) // if threshold is reached, stop expanding keys
+        {
+          log.debug("Threshold reached, stopping key expansion.");
+          break;
+        }
+        expandKeyMinimum4Signing(aKey, depth, expandedKeys);
       }
     }
   }

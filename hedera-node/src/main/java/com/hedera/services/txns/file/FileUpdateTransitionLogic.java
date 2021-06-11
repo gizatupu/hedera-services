@@ -9,9 +9,9 @@ package com.hedera.services.txns.file;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,11 +22,13 @@ package com.hedera.services.txns.file;
 
 import com.hedera.services.config.EntityNumbers;
 import com.hedera.services.context.TransactionContext;
+import com.hedera.services.files.HFileMeta;
 import com.hedera.services.files.HederaFs;
 import com.hedera.services.files.TieredHederaFs;
 import com.hedera.services.txns.TransitionLogic;
 import com.hedera.services.txns.validation.OptionValidator;
 import com.hederahashgraph.api.proto.java.Duration;
+import com.hederahashgraph.api.proto.java.FileID;
 import com.hederahashgraph.api.proto.java.FileUpdateTransactionBody;
 import com.hederahashgraph.api.proto.java.Key;
 import com.hederahashgraph.api.proto.java.KeyList;
@@ -92,7 +94,7 @@ public class FileUpdateTransitionLogic implements TransitionLogic {
 				txnCtx.setStatus(FILE_DELETED);
 				return;
 			}
-			if (attr.getWacl().isEmpty() && (op.hasKeys() || !op.getContents().isEmpty())) {
+			if (areEmptyAttributes(attr, op)) {
 				/* The transaction is trying to update an immutable file; in general, not a legal operation,
 				but the semantics change for a superuser (i.e., sysadmin or treasury) updating a system file. */
 				var isSysFile = entityNums.isSystemFile(target);
@@ -109,16 +111,7 @@ public class FileUpdateTransitionLogic implements TransitionLogic {
 			}
 			attr.setExpiry(max(op.getExpirationTime().getSeconds(), attr.getExpiry()));
 
-			Optional<HederaFs.UpdateResult> changeResult = Optional.empty();
-			if (replaceResult.map(HederaFs.UpdateResult::fileReplaced).orElse(TRUE)) {
-				if (op.hasKeys()) {
-					attr.setWacl(asFcKeyUnchecked(wrapped(op.getKeys())));
-				}
-				if (op.hasMemo()) {
-					attr.setMemo(op.getMemo().getValue());
-				}
-				changeResult = Optional.of(hfs.setattr(target, attr));
-			}
+			Optional<HederaFs.UpdateResult> changeResult = checkIfFileReplaced(replaceResult, op, attr, target);
 
 			txnCtx.setStatus(firstUnsuccessful(
 					replaceResult.map(HederaFs.UpdateResult::outcome)
@@ -131,6 +124,24 @@ public class FileUpdateTransitionLogic implements TransitionLogic {
 			log.warn("Unrecognized failure handling {}!", txnCtx.accessor().getSignedTxn4Log(), unknown);
 			txnCtx.setStatus(FAIL_INVALID);
 		}
+	}
+
+	private Optional<HederaFs.UpdateResult> checkIfFileReplaced(Optional<HederaFs.UpdateResult> replaceResult,
+			FileUpdateTransactionBody op, HFileMeta attr, FileID target) {
+		if (replaceResult.map(HederaFs.UpdateResult::fileReplaced).orElse(TRUE)) {
+			if (op.hasKeys()) {
+				attr.setWacl(asFcKeyUnchecked(wrapped(op.getKeys())));
+			}
+			if (op.hasMemo()) {
+				attr.setMemo(op.getMemo().getValue());
+			}
+			return Optional.of(hfs.setattr(target, attr));
+		}
+		return Optional.empty();
+	}
+
+	private boolean areEmptyAttributes(HFileMeta attr, FileUpdateTransactionBody op) {
+		return attr.getWacl().isEmpty() && (op.hasKeys() || !op.getContents().isEmpty());
 	}
 
 	static void mapToStatus(IllegalArgumentException iae, TransactionContext txnCtx) {

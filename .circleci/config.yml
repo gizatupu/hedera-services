@@ -140,7 +140,7 @@ commands:
                     exit 0;
                   fi
                   echo "export SLACK_DEFAULT_CHANNEL=\"${SONAR_SLACK_CHANNEL}\"" >> "${BASH_ENV}"
-                when: on_fail
+#                when: on_fail
             - slack/notify:
                 event: fail
                 custom: |
@@ -215,6 +215,73 @@ commands:
                           }
                       ]
                   }
+
+            - slack/notify:
+                event: pass
+                custom: |
+                  {
+                      "attachments": [
+                          {
+                              "color": "#00FF00",
+                              "blocks": [
+                                  {
+                                      "type": "section",
+                                      "text": {
+                                          "type": "mrkdwn",
+                                          "text": "*SonarCloud Scan Succeeded*"
+                                      },
+                                      "fields": [
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "*_Commit Author:_*"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "*_Branch:_*"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "${CIRCLE_USERNAME}"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "${CIRCLE_BRANCH}"
+                                          }
+                                      ]
+                                  },
+                                  {
+                                      "type": "section",
+                                      "fields": [
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "*_CircleCI Build Number:_*"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "*_SonarCloud Analysis:_*"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "<${CIRCLE_BUILD_URL}|${CIRCLE_BUILD_NUM}>"
+                                          },
+                                          {
+                                              "type": "mrkdwn",
+                                              "text": "<${SONAR_DASHBOARD_LINK}|${CIRCLE_BRANCH}>"
+                                          }
+                                      ]
+                                  },
+                                  {
+                                      "type": "section",
+                                      "text": {
+                                          "type": "mrkdwn",
+                                          "text": "*_Git Commit:_*\n${CIRCLE_SHA1}"
+                                      }
+                                  }
+                              ]
+                          }
+                      ]
+                  }
+
 
 
   ######################################################################################################################

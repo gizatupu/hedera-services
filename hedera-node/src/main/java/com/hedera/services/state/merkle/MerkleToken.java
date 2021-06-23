@@ -450,6 +450,18 @@ public class MerkleToken extends AbstractMerkleLeaf {
 		return freezeKey;
 	}
 
+	public void setCustomFeeKey(JKey customFeeKey) {
+		this.customFeeKey = customFeeKey;
+	}
+
+	public JKey getCustomFeeKey() {
+		return customFeeKey;
+	}
+
+	public boolean hasCustomFeeKey() {
+		return customFeeKey != null;
+	}
+
 	public void setTotalSupply(long totalSupply) {
 		this.totalSupply = totalSupply;
 	}
@@ -482,7 +494,8 @@ public class MerkleToken extends AbstractMerkleLeaf {
 		return feeSchedule;
 	}
 
-	public void setCustomFeeKey(JKey customFeeKey) {
-		this.customFeeKey = customFeeKey;
+	public List<CustomFee> customFeeSchedule() {
+		return feeSchedule;
 	}
+
 }
